@@ -1,6 +1,7 @@
 #ifndef NANOVM_H
 #define NANOVM_H
 
+#include <algorithm>
 #include <asmjit/core/codeholder.h>
 #include <asmjit/core/jitruntime.h>
 #include <asmjit/core/operand.h>
@@ -9,10 +10,13 @@
 #include <asmjit/x86.h>
 #include <cstdint>
 #include <array>
+#include <cstring>
 #include <iostream>
 #include <vector>
 
 #define MEM_SIZE 65536
+#define STACK_SIZE 4096
+#define CALL_STACK_SIZE 2048
 #define FETCH (this->memory[this->pc++])
 
 #define NUL 0x0
@@ -36,6 +40,15 @@
 #define JNC 0x12
 #define STORE 0x13
 #define LDM 0x14
+#define JL 0x15
+#define JLE 0x16
+#define JB 0x17
+#define JBE 0x18
+#define JMP_REGV 0x19
+#define PUSH 0x1A
+#define POP 0x1B
+#define CALL 0x1C
+#define RET 0x1D
 #define HLT 0xFF
 
 using namespace asmjit;
@@ -43,14 +56,19 @@ using namespace asmjit;
 
 class NanoVM {
     public:
-    typedef int (*Func)(void* regs, void* mem);
+    typedef int (*Func)(void* regs, void* mem, void* stack, void* callstack, uint64_t retadr);
 
     JitRuntime rt;
     CodeHolder code;
 
-    uint8_t memory[MEM_SIZE];
+    std::array<uint8_t, MEM_SIZE> memory;
+    std::array<uint64_t, STACK_SIZE> stack;
+    std::array<uint64_t, CALL_STACK_SIZE> callstack;
+
     uint64_t reg[256];
     uint64_t pc=0;
+    uint32_t sp=0;
+    uint64_t retaddr=0;
     uint64_t prog_size = 0;
 
     NanoVM() {
@@ -70,7 +88,8 @@ class NanoVM {
 
 
     void run(int32_t ip) {
-        int i = ip;
+        pc = ip;
+        int i = 0;
         x86::Assembler a(&code);
         std::vector<Label> labels(prog_size);
         for(auto &x : labels) {
@@ -187,8 +206,8 @@ class NanoVM {
                     uint8_t r = FETCH;
                     uint8_t r2 = FETCH;
                     a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
-                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
-                    a.shl(x86::regs::rax, x86::regs::rcx);
+                    a.mov(x86::cl, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.shl(x86::regs::rax, x86::cl);
                     a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
                     break;
                 }
@@ -196,8 +215,8 @@ class NanoVM {
                     uint8_t r = FETCH;
                     uint8_t r2 = FETCH;
                     a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
-                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
-                    a.shr(x86::regs::rax, x86::regs::rcx);
+                    a.mov(x86::cl, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.shr(x86::regs::rax, x86::cl);
                     a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
                     break;
                 }
@@ -259,38 +278,89 @@ class NanoVM {
                     }
                     break;
                 }
+                case JL: {
+                    uint64_t addr = fetch64(pc);
+                    
+                    if(addr<prog_size) a.jl(labels[addr]);
+                    break;
+                }
+                case JLE: {
+                    uint64_t addr = fetch64(pc);
+                    
+                    if(addr<prog_size) a.jle(labels[addr]);
+                    break;
+                }
+                case JB: {
+                    uint64_t addr = fetch64(pc);
+                    
+                    if(addr<prog_size) a.jbe(labels[addr]);
+                    break;
+                }
+                case JBE: {
+                    uint64_t addr = fetch64(pc);
+                    
+                    if(addr<prog_size) a.jbe(labels[addr]);
+                    break;
+                }
+                case JMP_REGV: {
+                    uint8_t r = FETCH;
+                    
+                    if(this->reg[r]<prog_size) {
+                        a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                        a.jmp(x86::regs::rax);
+                    }
+                    break;
+                }
+                case PUSH: {
+                    uint8_t r = FETCH;
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                    a.mov(x86::qword_ptr(x86::regs::rdx, this->sp*64), x86::regs::rax);
+                    this->sp++;
+                    break;
+                }
+                case POP: {
+                    uint8_t r = FETCH;
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdx, this->sp*64));
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
+                    this->sp--;
+                    break;
+                }
                 case HLT: {
                     a.xor_(x86::regs::rax, x86::regs::rax);
                     a.ret();
+                    break;
+                }
+                default: {
+                    std::cerr << &"[Error]: Unknown instruction '" << (int)this->memory[pc] << "', stopping execution...\n";
+                    pc = 0;
+                    return;
                 }
             }
 
         }
     }
 
-    bool qual_bytecode(uint64_t start, uint64_t end, uint8_t bytecode[]) {
+    bool qual_bytecode(uint64_t start, uint64_t end,const uint8_t bytecode[]) {
         if(end>=prog_size) return false;
-        uint16_t size = end-start;
-        for(uint64_t k=start;k<end;k++) {
-            for(int j=0;j<size;j++) {
-                if(this->memory[k]!=bytecode[j]) return false;
-            }
-        }
-        return true;
+        return std::memcmp(&this->memory+start, bytecode, end-start)==0;
     }
 
-    /*
+
     void analyzer() {
         for(uint64_t i = 0; i<prog_size;) {
-            if(qual_bytecode(i, i+, uint8_t *bytecode))
+            if(this->memory[i]==ADD&&i+5<prog_size&&this->memory[i+3]==ADD) {
+                // ADD R0, R1
+                // ADD R0, R1
+                // -> ADD_SSE R0 R1 R1 R3
+                
+            }
         }
     }
-    */
 
     int res() {
         Func fn;
         Error err = rt.add(&fn, &code);
-        int res = fn(this->reg, this->memory);
+        int res = fn(this->reg, &this->memory, &this->stack, &this->callstack, this->retaddr);
         rt.release(fn);
         return res;
     }
