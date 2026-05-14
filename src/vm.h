@@ -10,6 +10,7 @@
 #include <asmjit/x86.h>
 #include <cstdint>
 #include <array>
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -56,10 +57,11 @@ using namespace asmjit;
 
 class NanoVM {
     public:
-    typedef int (*Func)(void* regs, void* mem, void* stack, void* callstack, uint64_t retadr);
+    typedef int (*Func)(void* regs, void* mem, void* stack, void* callstack);
 
     JitRuntime rt;
     CodeHolder code;
+    
 
     std::array<uint8_t, MEM_SIZE> memory;
     std::array<uint64_t, STACK_SIZE> stack;
@@ -68,11 +70,11 @@ class NanoVM {
     uint64_t reg[256];
     uint64_t pc=0;
     uint32_t sp=0;
-    uint64_t retaddr=0;
+    uint64_t csp=0;
     uint64_t prog_size = 0;
 
     NanoVM() {
-        code.init(rt.environment(), rt.cpu_features());
+        code.init(rt.environment(), rt.cpu_features()); 
         for(uint64_t &x : reg) x = 0; 
         for(uint8_t &y : memory) y = 0;
     }
@@ -88,6 +90,8 @@ class NanoVM {
 
 
     void run(int32_t ip) {
+        FileLogger logger(stdout);
+        code.set_logger(&logger); 
         pc = ip;
         int i = 0;
         x86::Assembler a(&code);
@@ -96,6 +100,14 @@ class NanoVM {
             x = a.new_label();
         }
         
+        a.mov(x86::r10, x86::rcx); 
+        a.xor_(x86::r12, x86::r12); 
+
+        a.xor_(x86::r11, x86::r11); 
+        a.xor_(x86::regs::rcx, x86::regs::rcx);
+
+        a.push(x86::regs::r12);
+        a.push(x86::regs::r15);
         while(pc<prog_size) {
             a.bind(labels[pc]);
             i=FETCH;
@@ -313,19 +325,59 @@ class NanoVM {
                 }
                 case PUSH: {
                     uint8_t r = FETCH;
+                    Label skip_ = a.new_label();
+                    a.cmp(x86::regs::r11, STACK_SIZE);
+                    a.jnb(skip_);
+                    a.mov(x86::regs::rax, 1);
+                    a.ret();
+                    a.bind(skip_);
                     a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
-                    a.mov(x86::qword_ptr(x86::regs::rdx, this->sp*64), x86::regs::rax);
-                    this->sp++;
+                    a.mov(x86::qword_ptr(x86::regs::rdx, x86::regs::r11, 3), x86::regs::rax);
+                    a.inc(x86::regs::r11);
                     break;
                 }
                 case POP: {
                     uint8_t r = FETCH;
-                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdx, this->sp*64));
+                    Label skip_ = a.new_label();
+                    a.cmp(x86::regs::r11, 0);
+                    a.jnz(skip_);
+                    a.mov(x86::regs::rax, 1);
+                    a.ret();
+                    a.bind(skip_);
+                    a.dec(x86::regs::r11);
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdx, x86::regs::r11, 3));
                     a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
-                    this->sp--;
+                    
+                    break;
+                }
+                case CALL: {
+                    uint64_t addr = fetch64(pc);
+                    
+                    if(addr<prog_size) {
+                        Label ret_label = a.new_label();
+                        a.cmp(x86::regs::r12, CALL_STACK_SIZE);
+                        a.jae(ret_label);
+                        a.lea(x86::regs::r15, x86::ptr(ret_label));
+                        a.mov(x86::qword_ptr(x86::regs::r10, x86::regs::r12, 3), x86::regs::r15);
+                        a.inc(x86::regs::r12);
+                        a.jmp(labels[addr]);
+                        a.bind(ret_label);
+                    }
+                    break;
+                }
+                case RET: {
+                    a.cmp(x86::regs::r12, 0);
+                    Label skip_ = a.new_label();
+                    a.jz(skip_);
+                    a.dec(x86::regs::r12);
+                    a.mov(x86::regs::r15,x86::qword_ptr(x86::regs::r10, x86::regs::r12, 3));
+                    a.jmp(x86::regs::r15);
+                    a.bind(skip_);
                     break;
                 }
                 case HLT: {
+                    a.pop(x86::regs::r15);
+                    a.pop(x86::regs::r12);
                     a.xor_(x86::regs::rax, x86::regs::rax);
                     a.ret();
                     break;
@@ -360,7 +412,7 @@ class NanoVM {
     int res() {
         Func fn;
         Error err = rt.add(&fn, &code);
-        int res = fn(this->reg, &this->memory, &this->stack, &this->callstack, this->retaddr);
+        int res = fn(this->reg, &this->memory, &this->stack, &this->callstack);
         rt.release(fn);
         return res;
     }
