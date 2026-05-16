@@ -22,41 +22,7 @@
 #define CALL_STACK_SIZE 2048
 #define FETCH (this->memory[this->pc++])
 
-#define NUL 0x0
-#define LD 0x01
-#define ADD 0x02 
-#define SUB 0x03
-#define MUL 0x04
-#define DIV 0x05
-#define IMUL 0x06
-#define IDIV 0x07
-#define XOR_ 0x08
-#define AND_ 0x09
-#define OR_ 0x0A
-#define SHL 0x0B
-#define SHR 0x0C
-#define JMP 0x0D
-#define CMP 0x0E
-#define JZ 0x0F
-#define JNZ 0x10
-#define JC 0x11
-#define JNC 0x12
-#define STORE 0x13
-#define LDM 0x14
-#define JL 0x15
-#define JLE 0x16
-#define JB 0x17
-#define JBE 0x18
-#define JMP_REGV 0x19
-#define PUSH 0x1A
-#define POP 0x1B
-#define CALL 0x1C
-#define RET 0x1D
-#define FADD 0x1E
-#define FSUB 0x1F
-#define FMUL 0x20
-#define FDIV 0x21
-#define HLT 0xFF
+#include "common.h"
 
 using namespace asmjit;
 
@@ -77,6 +43,7 @@ class NanoVM {
     uint64_t pc=0;
     uint64_t prog_size = 0;
     bool verbose=false;
+    bool opt=false;
 
     NanoVM() {
         code.init(rt.environment(), rt.cpu_features()); 
@@ -84,6 +51,11 @@ class NanoVM {
         for(uint8_t &y : memory) y = 0;
     }
 
+    std::array<uint8_t, 8> slice64(uint64_t i) {
+        std::array<uint8_t, 8> res;
+        std::memcpy(res.data(), &i, sizeof(i));
+        return res;
+    }
 
     inline uint64_t fetch64(uint64_t &i) {
         uint64_t res = 0;
@@ -93,6 +65,15 @@ class NanoVM {
         return res;
     }
 
+    inline uint64_t into64(uint64_t &i, std::vector<uint8_t> m) {
+        uint64_t res = 0;
+        for(int a=0;a<8;a++) {
+            res |= (uint64_t)(m[i+a]) << (8*a);
+        }
+        return res;
+    }
+
+    
 
     void run(int32_t ip) {
         StringLogger logger;
@@ -223,7 +204,8 @@ class NanoVM {
                     uint8_t r = FETCH;
                     uint8_t r2 = FETCH;
                     a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
-                    a.mov(x86::cl, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.mov(x86::cl, x86::regs::rcx);
                     a.shl(x86::regs::rax, x86::cl);
                     a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
                     break;
@@ -232,7 +214,8 @@ class NanoVM {
                     uint8_t r = FETCH;
                     uint8_t r2 = FETCH;
                     a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
-                    a.mov(x86::cl, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.mov(x86::cl, x86::regs::rcx);
                     a.shr(x86::regs::rax, x86::cl);
                     a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
                     break;
@@ -321,10 +304,10 @@ class NanoVM {
                 }
                 case JMP_REGV: {
                     uint8_t r = FETCH;
+                    uint64_t addr = this->reg[r];
                     
-                    if(this->reg[r]<prog_size) {
-                        a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
-                        a.jmp(x86::regs::rax);
+                    if(addr<prog_size) {
+                        a.jmp(labels[addr]);
                     }
                     break;
                 }
@@ -445,18 +428,53 @@ class NanoVM {
 
     bool qual_bytecode(uint64_t start, uint64_t end,const uint8_t bytecode[]) {
         if(end>=prog_size) return false;
-        return std::memcmp(&this->memory+start, bytecode, end-start)==0;
+        return std::memcmp(this->memory.data()+start, bytecode, end-start)==0;
     }
 
 
-    void analyzer() {
-        for(uint64_t i = 0; i<prog_size;) {
-            if(this->memory[i]==ADD&&i+5<prog_size&&this->memory[i+3]==ADD) {
-                // ADD R0, R1
-                // ADD R0, R1
-                // -> ADD_SSE R0 R1 R1 R3
-                
-            }
+    void analyzer(std::vector<uint8_t> &prog) {
+        for(uint64_t i = 0; i<prog.size();) {
+            if(prog[i]==LD&&i+23<prog.size()&&prog[i+10]==LD&&(prog[i+20]==ADD||prog[i+20]==SUB||prog[i+20]==MUL||prog[i+20]==DIV||prog[i+20]==IMUL||prog[i+20]==IDIV)) {
+                // LD R0, imm1(8)
+                // LD R1, imm2(8)
+                // ADD, R0, R1
+                // ->
+                // LD, R0, imm1+imm2
+                // LD, R1, imm2
+
+                std::cout << "started constan folding\n";
+                uint8_t a = prog[i+1];
+                uint8_t b = prog[i+11];
+                uint8_t c = prog[i+21];
+                uint8_t d = prog[i+22];
+                if(a!=c||b!=d) {
+                    i+=23;
+                    continue;
+                }
+                uint64_t temp_indx1 = i+2;
+                uint64_t temp_indx2 = i+12;
+                uint64_t val = into64(temp_indx1, prog);
+                uint64_t val2 = into64(temp_indx2, prog);
+                uint8_t opcode = prog[i+20];
+                uint64_t v = 0;
+                switch(opcode) {
+                    case ADD: v = val+val2; break;
+                    case SUB: v = val-val2; break;
+                    case MUL: v = val*val2; break;
+                    case DIV: v = val/val2; break;
+                    case IMUL: v = (int64_t)val*(int64_t)val2; break;
+                    case IDIV: v = (int64_t)val/(int64_t)val2; break;
+                }
+
+                std::array<uint8_t, 8> newvalr0 = slice64(v);
+                temp_indx1=0;
+                for(uint64_t j=i+2;j<i+10;j++) {
+                    prog[j] = newvalr0[temp_indx1]; 
+                    temp_indx1++;
+                }
+                for(uint64_t k=i+20;k<i+23;k++) prog[k]=0x00; // noop
+                i+=23;
+            } else i++;
         }
     }
 
