@@ -2,7 +2,7 @@
  
 NanoVM is small, jit vm that executed bytecode. 
 
-Current Version: 0.5-dev2
+Current Version: 0.5
 
 Status: InDev
 
