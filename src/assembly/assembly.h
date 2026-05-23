@@ -90,6 +90,15 @@ std::unordered_map<std::string, std::string> opcodes = {
     {"fsub", "0x1F"},
     {"fmul", "0x20"},
     {"fdiv", "0x21"},
+    {"copy", "0x22"},
+    {"swap", "0x23"},
+    {"fma", "0x24"},
+    {"ltf", "0x25"},
+    {"ftl", "0x26"},
+    {"not", "0x27"},
+    {"ror", "0x28"},
+    {"rol", "0x29"},
+    {"arx", "0x2A"},
     /*
     {"ADD", "1"},
     {"ADD", "1"},
@@ -122,49 +131,7 @@ public:
     }
 
     inline bool is_opcode(const std::string &id) {
-        bool opcode = false;
-        if(id=="ld") opcode = true;
-        if(id=="add") opcode = true;
-        if(id=="sub") opcode = true;
-        if(id=="mul") opcode = true;
-        if(id=="div") opcode = true;
-        if(id=="imul") opcode = true;
-        if(id=="idiv") opcode = true;
-        if(id=="xor") opcode = true;
-        if(id=="and") opcode = true;
-        if(id=="or") opcode = true;
-        if(id=="shl") opcode = true;
-        if(id=="shr") opcode = true;
-        if(id=="jmp") opcode = true;
-        if(id=="cmp") opcode = true;
-        if(id=="jz") opcode = true;
-        if(id=="jnz") opcode = true;
-        if(id=="jc") opcode = true;
-        if(id=="jnc") opcode = true;
-        if(id=="store") opcode = true;
-        if(id=="ldm") opcode = true;
-        if(id=="jl") opcode = true;
-        if(id=="jle") opcode = true;
-        if(id=="jb") opcode = true;
-        if(id=="jbe") opcode = true;
-        if(id=="jmprv") opcode = true;
-        if(id=="push") opcode = true;
-        if(id=="pop") opcode = true;
-        if(id=="call") opcode = true;
-        if(id=="ret") opcode = true;
-        if(id=="fadd") opcode = true;
-        if(id=="fsub") opcode = true;
-        if(id=="fmul") opcode = true;
-        if(id=="fdiv") opcode = true;
-        /*
-        if(id=="ADD") opcode = true;
-        if(id=="ADD") opcode = true;
-        if(id=="ADD") opcode = true;
-        if(id=="ADD") opcode = true;
-        if(id=="ADD") opcode = true;
-        */
-        if(id=="hlt") opcode = true;
-        return opcode;
+        return (opcodes[id]!="");
     }
 
     std::unordered_set<std::string> included;
@@ -297,7 +264,7 @@ public:
                 }
                 std::string opcode = opcodes[id];
                 if(opcode==""&&!labels.contains(id)) {
-                    throw assembly_error("[Error - assembly:" + filename + std::to_string(l) + ':' + std::to_string(c) + "]: unknown instruction '" + id + "' found in code\n");
+                    throw assembly_error("[Error - assembly:" + filename + ':' + std::to_string(l) + ':' + std::to_string(c) + "]: unknown instruction '" + id + "' found in code\n");
                 }
                 if(opcode=="") {
                     lexed.emplace_back(token{LABEL, l, c, id, addr});

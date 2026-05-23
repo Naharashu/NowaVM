@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <asmjit/core/codeholder.h>
+#include <asmjit/core/cpuinfo.h>
 #include <asmjit/core/jitruntime.h>
 #include <asmjit/core/logger.h>
 #include <asmjit/core/operand.h>
@@ -16,6 +17,7 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include "error_codes.h"
 
 #define MEM_SIZE 65536
 #define STACK_SIZE 4096
@@ -44,6 +46,7 @@ class NanoVM {
     uint64_t prog_size = 0;
     bool verbose=false;
     bool opt=false;
+    bool warning_rt=false;
 
     NanoVM() {
         code.init(rt.environment(), rt.cpu_features()); 
@@ -81,6 +84,7 @@ class NanoVM {
         pc = ip;
         int i = 0;
         x86::Assembler a(&code);
+        CpuFeatures features = rt.cpu_features();
         std::vector<Label> labels(prog_size);
         for(auto &x : labels) {
             x = a.new_label();
@@ -260,9 +264,10 @@ class NanoVM {
                 }
                 case STORE: {
                     uint8_t r = FETCH;
+
                     uint64_t addr = fetch64(pc);
                     
-                    if(addr<prog_size) {
+                    if(addr<MEM_SIZE) {
                         a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
                         a.mov(x86::qword_ptr(x86::regs::rsi, addr), x86::regs::rax);
                     }
@@ -272,7 +277,7 @@ class NanoVM {
                     uint8_t r = FETCH;
                     uint64_t addr = fetch64(pc);
                     
-                    if(addr<prog_size) {
+                    if(addr<MEM_SIZE) {
                         a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rsi, addr));
                         a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
                     }
@@ -313,12 +318,12 @@ class NanoVM {
                 }
                 case PUSH: {
                     uint8_t r = FETCH;
-                    Label skip_ = a.new_named_label("Stack_PUSH");
+                    Label skip_ = a.new_anonymous_label("Stack_PUSH");
                     a.cmp(x86::regs::r11, STACK_SIZE);
                     a.jb(skip_);
                     a.pop(x86::regs::r15);
                     a.pop(x86::regs::r12);
-                    a.mov(x86::regs::rax, 1);
+                    a.mov(x86::regs::rax, STACK_OVERFLOW);
                     a.ret();
                     a.bind(skip_);
                     a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
@@ -328,12 +333,12 @@ class NanoVM {
                 }
                 case POP: {
                     uint8_t r = FETCH;
-                    Label skip_ = a.new_named_label("Stack_POP");
+                    Label skip_ = a.new_anonymous_label("Stack_POP");
                     a.cmp(x86::regs::r11, 0);
                     a.jnz(skip_);
                     a.pop(x86::regs::r15);
                     a.pop(x86::regs::r12);
-                    a.mov(x86::regs::rax, 1);
+                    a.mov(x86::regs::rax, STACK_UNDERFLOW);
                     a.ret();
                     a.bind(skip_);
                     a.dec(x86::regs::r11);
@@ -360,11 +365,15 @@ class NanoVM {
                 case RET: {
                     a.cmp(x86::regs::r12, 0);
                     Label skip_ = a.new_label();
-                    a.jz(skip_);
+                    a.jnz(skip_);
+                    a.pop(x86::regs::r15);
+                    a.pop(x86::regs::r12);
+                    a.mov(x86::regs::rax, NO_RETURN_ADDRESS);
+                    a.ret();
+                    a.bind(skip_);
                     a.dec(x86::regs::r12);
                     a.mov(x86::regs::r15,x86::qword_ptr(x86::regs::r10, x86::regs::r12, 3));
                     a.jmp(x86::regs::r15);
-                    a.bind(skip_);
                     break;
                 }
                 case FADD: {
@@ -408,11 +417,162 @@ class NanoVM {
                     a.bind(skip_div);
                     break;
                 }
+                case COPY: {
+                    uint8_t r = FETCH;
+                    uint8_t r2 = FETCH;
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r2*8), x86::regs::rax);
+                    break;
+                }
+                case SWAP: {
+                    uint8_t r = FETCH;
+                    uint8_t r2 = FETCH;
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r2*8), x86::regs::rax);
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rcx);
+                    break;
+                }
+                case FMA: {
+                    uint8_t r = FETCH;
+                    uint8_t r2 = FETCH;
+                    uint8_t r3 = FETCH; 
+                    if(!features.has(CpuFeatures::X86::kFMA)) {
+                        if(this->warning_rt) {
+                            std::cerr << "[Warning]: fma doesnt supported on this machine, used emulation\n";
+                        }
+                        a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r*8));
+                        a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2*8));
+                        a.movq(x86::regs::xmm2, x86::qword_ptr(x86::regs::rdi, r3*8));
+                        a.mulsd(x86::regs::xmm0, x86::regs::xmm2);
+                        a.addsd(x86::regs::xmm0, x86::regs::xmm1);
+                    } else {
+                        a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r*8));
+                        a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2*8));
+                        a.movq(x86::regs::xmm2, x86::qword_ptr(x86::regs::rdi, r3*8));
+                        a.vfmadd132sd(x86::regs::xmm0, x86::regs::xmm1, x86::regs::xmm2);
+                    }
+                    a.movq(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::xmm0);
+                    break;
+                }
+                case LTF: {
+                    uint8_t r = FETCH;
+                    uint64_t val = fetch64(pc);
+                    
+                    a.movabs(x86::regs::rax, val);
+                    a.cvtsi2sd(x86::regs::xmm0, x86::regs::rax);
+                    a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
+                    break;
+                }
+                case FTL: {
+                    uint8_t r = FETCH;
+                    a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r*8));
+                    if(!features.has(CpuFeatures::X86::kAVX512_F)) {
+                        if(warning_rt) {
+                            std::cerr << "[Warning]: Host cpu doesnt have AVX-512 for FTL instuction, used SSE2-cvttsd2si\n";
+                        }
+                        a.cvttsd2si(x86::regs::rax, x86::regs::xmm0);
+                        a.test(x86::regs::rax, x86::regs::rax);
+                        Label done = a.new_anonymous_label("done");
+                        a.jns(done);
+                        a.add(x86::regs::rax,  9223372036854775808);
+                        a.bind(done);
+                    } else {
+                        a.vcvttsd2usi(x86::regs::rax, x86::regs::xmm0);
+                    }
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                    break;
+                }
+                case NOT: {
+                    uint8_t r = FETCH;
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                    a.not_(x86::regs::rax);
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
+                    break;
+                }
+                case ROR: {
+                    uint8_t r = FETCH;
+                    uint8_t r2 = FETCH;
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.and_(x86::regs::rcx, 63);
+                    a.mov(x86::regs::cl, x86::regs::rcx);
+                    a.ror(x86::regs::rax, x86::regs::cl);
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
+                    break;
+                }
+                case ROL: {
+                    uint8_t r = FETCH;
+                    uint8_t r2 = FETCH;
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.and_(x86::regs::rcx, 63);
+                    a.mov(x86::regs::cl, x86::regs::rcx);
+                    a.rol(x86::regs::rax, x86::regs::cl);
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
+                    break;
+                }
+                case ARX: {
+                    uint8_t r = FETCH;
+                    uint8_t r2 = FETCH;
+                    uint8_t r3 = FETCH;
+                    uint8_t r4 = FETCH;
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.mov(x86::regs::r8, x86::qword_ptr(x86::regs::rdi, r3*8));
+                    a.mov(x86::regs::r9, x86::qword_ptr(x86::regs::rdi, r4*8));
+                    a.and_(x86::regs::r8, 63);
+                    a.add(x86::regs::rax, x86::regs::rcx);
+                    a.mov(x86::regs::cl, x86::regs::r8b);
+                    a.rol(x86::regs::rax, x86::regs::cl);
+                    a.xor_(x86::regs::rax, x86::regs::r9);
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
+                    break;
+                }
                 case HLT: {
                     a.pop(x86::regs::r15);
                     a.pop(x86::regs::r12);
                     a.xor_(x86::regs::rax, x86::regs::rax);
                     a.ret();
+                    break;
+                }
+                case STORX: {
+                    uint8_t r = FETCH;
+                    uint8_t r2 = FETCH;
+                    
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.shl(x86::regs::rcx, 3);
+                    a.cmp(x86::regs::rcx, MEM_SIZE);
+                    Label l = a.new_anonymous_label("OUT_OF_BOUNDS_SKIP");
+                    a.jb(l);
+                    a.pop(x86::regs::r15);
+                    a.pop(x86::regs::r12);
+                    a.mov(x86::regs::rax, OUT_OF_BOUND_MEMORY_ACCESS_WRITE);
+                    a.ret();
+                    a.bind(l);
+                    a.mov(x86::qword_ptr(x86::regs::rsi, x86::regs::rcx, 0), x86::regs::rax);
+
+                    break;
+                }
+                case LDMX: {
+                    uint8_t r = FETCH;
+                    uint8_t r2 = FETCH;
+                
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r*8));
+                    a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2*8));
+                    a.shl(x86::regs::rcx, 3);
+                    a.cmp(x86::regs::rcx, MEM_SIZE);
+                    Label l = a.new_anonymous_label("OUT_OF_BOUNDS_SKIP");
+                    a.jb(l);
+                    a.pop(x86::regs::r15);
+                    a.pop(x86::regs::r12);
+                    a.mov(x86::regs::rax, OUT_OF_BOUND_MEMORY_ACCESS_READ);
+                    a.ret();
+                    a.bind(l);
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rsi, x86::regs::rcx, 0));
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
+
                     break;
                 }
                 default: {
@@ -467,6 +627,7 @@ class NanoVM {
                     case XOR_: v = val^val2; break;
                     case AND_: v = val&val2; break;
                     case OR_: v = val|val2; break;
+                    default: break;
                 }
 
                 std::array<uint8_t, 8> newvalr0 = slice64(v);

@@ -35,6 +35,17 @@
 #define FSUB 0x1F
 #define FMUL 0x20
 #define FDIV 0x21
+#define COPY 0x22
+#define SWAP 0x23
+#define FMA 0x24
+#define LTF 0x25
+#define FTL 0x26
+#define NOT 0x27
+#define ROR 0x28
+#define ROL 0x29
+#define ARX 0x2A
+#define STORX 0x2B
+#define LDMX 0x2C
 #define HLT 0xFF
 
 #endif

@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <vector>
 #include "assembly/assembly.h"
+#include "error_codes.h"
 #include "vm.h"
 
 
@@ -24,7 +25,7 @@ int main(int argc, char** argv) {
         return 0;
     }
     if(strcmp(argv[1], "-v")==0) {
-        std::cout << "NanoVM V0.6\n";
+        std::cout << "NanoVM V0.7\n";
         return 0;
     }
     if(strcmp(argv[1], "--help")==0) {
@@ -38,6 +39,7 @@ int main(int argc, char** argv) {
         << "-r - registry dump after execution\n" 
         << "-v - version of NanoVM\n" 
         << "-V - prints generated x64 code\n"
+        << "-Wrt - prints VM runtime warnings\n"
         << "-e [filename] - execute bytecode\n"
         << "-o - sets name for output binary file\n"
         << "-opt - optimize bytecode\n";
@@ -46,6 +48,7 @@ int main(int argc, char** argv) {
     for(int i=1;i<argc;i++) {
         if(strcmp(argv[i], "-r")==0) regdump=true;
         else if(strcmp(argv[i], "-V")==0) vm.verbose=true;
+        else if(strcmp(argv[i], "-Wrt")==0) vm.warning_rt=true;
         else if(strcmp(argv[i], "-e")==0) {
             if(i+1<argc&&argv[i+1][0]!='-'&&!compiling) {
                 runit_file=true;
@@ -107,7 +110,7 @@ int main(int argc, char** argv) {
         vm.opt=opt;
         vm.run(0);
         int exit_code = vm.res();
-        std::cout << "Program exited with code " << exit_code << '\n';
+        std::cout << "Program exited with code " << exit_code << '(' << exit_code_info(exit_code) << ")\n";
     }
 
     if(runit_file) {
@@ -123,8 +126,8 @@ int main(int argc, char** argv) {
         }
         vm.load_program(bytecode);
         vm.run(0);
-        int res = vm.res();
-        std::cout << "Program exited with code " << res << '\n';
+        int exit_code = vm.res();
+        std::cout << "Program exited with code " << exit_code << '(' << exit_code_info(exit_code) << ")\n";
     }
 
     if(regdump) {
