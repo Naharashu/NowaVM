@@ -43,6 +43,9 @@ enum tok_type : uint8_t
     REGN,
     LABEL,
     INCLUDE,
+    DEFINE,
+    MACRO,
+    EMPTY,
     EOF_
 };
 
@@ -57,6 +60,7 @@ typedef struct token
 
 std::unordered_map<std::string, uint64_t> labels;
 std::unordered_map<std::string, std::string> opcodes = {
+    {"noop", "0x00"},
     {"ld", "0x01"},
     {"add", "0x02"},
     {"sub", "0x03"},
@@ -99,6 +103,9 @@ std::unordered_map<std::string, std::string> opcodes = {
     {"ror", "0x28"},
     {"rol", "0x29"},
     {"arx", "0x2A"},
+    {"storx", "0x2B"},
+    {"ldmx", "0x2C"},
+    {"ldzero", "0x2D"},
     /*
     {"ADD", "1"},
     {"ADD", "1"},
@@ -116,7 +123,8 @@ public:
     std::vector<token> lexed;
     std::string filename = "";
     std::string header;
-    explicit lexer(std::string& fname_) : filename(fname_) {
+    bool use_entry0;
+    explicit lexer(std::string& fname_, const bool &entr0) : filename(fname_), use_entry0(entr0) {
         code = preprocessor(fname_);
     };
 
@@ -135,7 +143,10 @@ public:
     }
 
     std::unordered_set<std::string> included;
-    bool use_entry0 = true;
+    std::unordered_map<std::string, std::string> defined;
+    std::unordered_set<std::string> def_set; 
+    std::vector<bool> active_stack; 
+    bool active = true; 
     inline std::string preprocessor(const std::string &fname) {
         std::string res;
         std::string line;
@@ -150,7 +161,6 @@ public:
         if(included.contains(finame)) return "";
         included.insert(finame);
         std::ifstream f(finame);
-        std::cout << finame << '\n';
         if(!f.is_open()) throw assembly_error("[Error - assembly]: file '" + finame + "' doesnt exitst\n");
         auto trim = [](std::string& s) {
             size_t start = s.find_first_not_of(" \t\r\n");
@@ -166,13 +176,76 @@ public:
         while(std::getline(f, line)) {
             if (auto pos = line.find(';'); pos != std::string::npos)
             line = line.substr(0, pos);
-            if(line.rfind("#include", 0)==0) {
-                std::string include = line.substr(8);
-                trim(include);
-                include.erase(0, include.find_first_not_of(" \t"));
-                
-                res += preprocessor(include);
-            } else res += line + '\n';
+            if(line.rfind("#ifdef", 0)==0) {
+                std::string name = line.substr(6);
+                trim(name);
+                active_stack.push_back(active);
+                active = active && defined.contains(name);
+            } else if(line.rfind("#ifndef", 0)==0) {
+                std::string name = line.substr(7);
+                trim(name);
+                active_stack.push_back(active);
+                active = active && !defined.contains(name);
+            } else if(line.rfind("#else", 0)==0) {
+                if (active_stack.empty()) throw assembly_error("[Error - preprocessor]: unexpected #else\n");
+                active = active_stack.back() && !active;
+            } else if(line.rfind("#endif", 0)==0) {
+                if (active_stack.empty()) throw assembly_error("[Error - preprocessor]: unexpected #endif\n");
+                active = active_stack.back();
+                active_stack.pop_back();
+            } else if(active) {
+                if(line.rfind("#include", 0)==0) {
+                    std::string include = line.substr(8);
+                    trim(include);
+                    include.erase(0, include.find_first_not_of(" \t"));
+                    
+                    res += preprocessor(include);
+                } else if(line.rfind("#define", 0)==0) {
+                    std::string def = line.substr(7);
+                    std::string name;
+                    std::string number;
+                    bool name_seen=false;
+                    bool val_seen=false;
+                    for(uint32_t i=0;i<def.size();) {
+                        uint8_t c = def[i];
+                        if (is_letter(c)||c=='_') {
+                            while (i < def.size() && (is_letter(def[i]) || is_int(def[i]) || def[i] == '_')) {
+                                name.push_back(def[i]);
+                                i++;
+                            }
+                            name_seen=true;
+                        } else if (is_int(c)) {
+                            if(!name_seen) {
+                                throw assembly_error("[Error - preprocessor]: expected NAME for macro(e.g #define ERROR 1), but got immediate\n");
+                            }
+                            while ((i < def.size() && is_int(def[i]))) {
+                                number.push_back(def[i]);
+                                i++;
+                            }
+                            val_seen=true;
+                            defined[name]=number;
+                            break;
+                        } else i++;
+                    }
+                    if((!val_seen)&&name_seen) defined[name]="1";
+                    else if(!val_seen&&!name_seen) throw assembly_error("[Error - preprocessor]: expected NAME for macro(e.g. #define DEBUG)\n");
+                } else if(line.rfind("#undef", 0)==0) {
+                    std::string macro_name = line.substr(6);
+                    trim(macro_name);
+                    if(defined.contains(macro_name)) defined.erase(defined.find(macro_name));
+                } else if(line.rfind("#warn", 0)==0) {
+                    std::string msg = line.substr(5);
+                    trim(msg);
+                    msg.erase(0, msg.find_first_not_of(" \t")); 
+                    std::cerr << "[Warning]: " << msg << '\n';
+                } else if(line.rfind("#error", 0)==0) {
+                    std::string msg = line.substr(6);
+                    trim(msg);
+                    msg.erase(0, msg.find_first_not_of(" \t"));
+                    throw assembly_error("[Error - preprocessor]: " + msg + '\n');
+                }
+                else res += line + '\n';
+            }
         }
         return res;
     }
@@ -255,7 +328,7 @@ public:
                     addr++;
                     continue;
                 }
-                if(id=="include") {
+                if(id=="include"||id=="define") {
                     while(i<code.size()&&code[i]!='\n') {
                         i++;
                         c++;
@@ -263,8 +336,13 @@ public:
                     continue;
                 }
                 std::string opcode = opcodes[id];
+                if(defined.contains(id)) {
+                    lexed.emplace_back(token{INT, l, c, defined[id], addr});
+                    addr+=8;
+                    continue;
+                }
                 if(opcode==""&&!labels.contains(id)) {
-                    throw assembly_error("[Error - assembly:" + filename + ':' + std::to_string(l) + ':' + std::to_string(c) + "]: unknown instruction '" + id + "' found in code\n");
+                    throw assembly_error("[Error - assembly:" + filename + ':' + std::to_string(l) + ':' + std::to_string(c) + "]: unknown symbol '" + id + "' found in code\n");
                 }
                 if(opcode=="") {
                     lexed.emplace_back(token{LABEL, l, c, id, addr});
@@ -327,9 +405,17 @@ class assembly {
         else return lexed.back();
     }
     public:
+    bool opt=false;
+    bool use_entry0_as=true;
     std::string file = "";
     void analyze() {
-        for(uint64_t i=0;i<lexed.size()-2;i++) {
+        if(!opt) return;
+        std::array<uint8_t, 256> register_usage{};
+        for(auto &x : lexed) {
+            if(x.t==REGN) register_usage[std::stoull(x.val)%256]++;
+        }
+        uint64_t s = lexed.size()-2;
+        for(uint64_t i=0;i<s;i++) {
             token c = lexed[i];
             token n = lexed[i+1];
             token ah = lexed[i+2];
@@ -338,7 +424,33 @@ class assembly {
             }
             else if(c.t==INT&&n.t==INT) {
                 throw assembly_error("[Error - assembly:" + file + std::to_string(c.line) + ':' + std::to_string(c.c) + "]: expected end of instruction, but got '" + n.val + "'\n");
-            } //else if(c.t==ID&&n.t==REGN&&ah.t==ID)
+            } //else if(c.t==ID&&n.t==REGN&&ah.t==ID) 
+            else if(c.val=="0xFF"&&n.t!=EOF_) {
+                lexed[i+1]={EOF_};
+                break;
+            } else if(c.val=="0x0D"&&n.t==LABEL) {
+                // jmp label 0 1..8
+                // label:
+                // ->
+                // noop (just executes linearly)
+                auto x = labels.find(n.val);
+                if(x != labels.end() && ah.address == x->second) {
+                    lexed[i] = {EMPTY};
+                    lexed[i+1] = {EMPTY};
+                }
+            } else if(c.val=="0x01"&&(n.t==REGN&&register_usage[std::stoull(n.val)]==1)) {
+                // ld r0 42
+                // ->
+                // noop (never used)
+                lexed[i] = {EMPTY};
+                lexed[i+1] = {EMPTY};
+                lexed[i+2] = {EMPTY};
+            } else if((c.val=="0x08"||c.val=="0x03")&&(n.t==REGN&&ah.t==REGN)&&n.val==ah.val) {
+                lexed[i].val = "0x2D";
+                std::cout << lexed[i].val << ' ';
+                lexed[i+2] = {EMPTY};
+            }
+            i+=2;
         }
     }
 
@@ -351,14 +463,14 @@ class assembly {
         while(std::getline(f, line)) {
             code += line + '\n';
         }
-        lexer l(filename);
+        lexer l(filename, use_entry0_as);
         l.lex();
         lexed = l.lexed;
     }
 
     std::vector<uint8_t> compile() {
         std::vector<uint8_t> compiled;
-        //analyze();
+        analyze();
         while(indx<lexed.size()&&peek().t!=EOF_) {
             if(lexed[indx].t==ID) {
                 std::string id = lexed[indx].val;
@@ -377,6 +489,13 @@ class assembly {
                 consume();
             } else if(peek().t==LABEL) {
                 uint64_t val = labels[peek().val];
+                consume();
+                std::array<uint8_t, 8> bytes = slice64(val);
+                for(auto &x : bytes) {
+                    compiled.emplace_back(x);
+                }
+            } else if(peek().t==MACRO) {
+                uint64_t val = stoull(peek().val);
                 consume();
                 std::array<uint8_t, 8> bytes = slice64(val);
                 for(auto &x : bytes) {

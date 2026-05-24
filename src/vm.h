@@ -102,7 +102,7 @@ class NanoVM {
             a.bind(labels[pc]);
             i=FETCH;
             switch(i) {
-                case NUL: continue; break;
+                case NOOP: continue; break;
                 case LD: {
                     uint8_t r = FETCH;
                     uint64_t val = fetch64(pc);
@@ -475,7 +475,7 @@ class NanoVM {
                         a.test(x86::regs::rax, x86::regs::rax);
                         Label done = a.new_anonymous_label("done");
                         a.jns(done);
-                        a.add(x86::regs::rax,  9223372036854775808);
+                        a.add(x86::regs::rax,  9223372036854775808ULL);
                         a.bind(done);
                     } else {
                         a.vcvttsd2usi(x86::regs::rax, x86::regs::xmm0);
@@ -529,13 +529,6 @@ class NanoVM {
                     a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
                     break;
                 }
-                case HLT: {
-                    a.pop(x86::regs::r15);
-                    a.pop(x86::regs::r12);
-                    a.xor_(x86::regs::rax, x86::regs::rax);
-                    a.ret();
-                    break;
-                }
                 case STORX: {
                     uint8_t r = FETCH;
                     uint8_t r2 = FETCH;
@@ -575,8 +568,20 @@ class NanoVM {
 
                     break;
                 }
+                case LDZERO: {
+                    uint8_t r = FETCH;
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r*8), 0);
+                    break;
+                }
+                case HLT: {
+                    a.pop(x86::regs::r15);
+                    a.pop(x86::regs::r12);
+                    a.xor_(x86::regs::rax, x86::regs::rax);
+                    a.ret();
+                    break;
+                }
                 default: {
-                    std::cerr << &"[Error]: Unknown instruction '" << (int)this->memory[pc] << "', stopping execution...\n";
+                    std::cerr << "[Error]: Unknown instruction '" << (int)this->memory[pc] << "', stopping execution...\n";
                     pc = 0;
                     return;
                 }
@@ -593,14 +598,16 @@ class NanoVM {
 
 
     void analyzer(std::vector<uint8_t> &prog) {
-        for(uint64_t i = 0; i<prog.size();) {
-            if(prog[i]==LD&&i+23<prog.size()&&prog[i+10]==LD&&(prog[i+20]==ADD||prog[i+20]==SUB||prog[i+20]==MUL||prog[i+20]==DIV||prog[i+20]==IMUL||prog[i+20]==IDIV||prog[i+20]==XOR_||prog[i+20]==AND_||prog[i+20]==OR_)) {
-                // LD R0, imm1(8)
-                // LD R1, imm2(8)
-                // ADD, R0, R1
+        uint64_t size = prog.size();
+        for(uint64_t i = 0; i<size;) {
+            if(prog[i]==LD&&i+23<size&&prog[i+10]==LD&&(prog[i+20]==ADD||prog[i+20]==SUB||prog[i+20]==MUL||prog[i+20]==DIV||prog[i+20]==IMUL||prog[i+20]==IDIV||prog[i+20]==XOR_||prog[i+20]==AND_||prog[i+20]==OR_)) {
+                // ld r0, imm1(8)
+                // ld r1, imm2(8)
+                // add, r0, r1
                 // ->
-                // LD, R0, imm1+imm2
-                // LD, R1, imm2
+                // ld, r0, imm1+imm2
+                // ld, r1, imm2
+                // (constant folding)
 
                 std::cout << "started constan folding\n";
                 uint8_t a = prog[i+1];
@@ -636,8 +643,33 @@ class NanoVM {
                     prog[j] = newvalr0[temp_indx1]; 
                     temp_indx1++;
                 }
-                for(uint64_t k=i+20;k<i+23;k++) prog[k]=0x00; // noop
+                for(uint64_t k=i+20;k<i+23;k++) prog[k]=NOOP; // noop
                 i+=23;
+            } else if(i+3<size&&prog[i]==PUSH&&prog[i+2]==POP) {
+                if(prog[i+1]==prog[i+3]) {
+                    // push r0
+                    // pop r0
+                    // ->
+                    // NOOP (dead code)
+                    for(uint64_t k=i;k<i+4;k++) prog[k]=NOOP; // noop
+                } else {
+                    // push r0
+                    // pop r1
+                    // ->
+                    // copy r0 r1 (faster and smaller code)
+                    prog[i] = COPY;
+                    prog[i+2] = prog[i+3];
+                    prog[i+3] = NOOP; 
+                }
+                i+=4;
+            } else if(i+2<size&&(prog[i]==COPY||prog[i]==SWAP)                                                                                                                                                                                                                          &&prog[i+1]==prog[i+2]) {
+                // copy r0 r0 
+                // swap r0 r0
+                // ->
+                // nop (dead code)
+                prog[i] = NOOP;
+                prog[i+1] = NOOP;
+                prog[i+2] = NOOP; 
             } else i++;
         }
     }

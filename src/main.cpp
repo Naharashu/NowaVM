@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
     bool compiling = false;
     std::string output_file_name="a.bin";
     bool opt = false;
+    bool entry0 = true;
     if(argc<2) {
         std::cout << "Usage: nanovm [OPTIONS]\nType nanovm --help for more info\n";
         return 0;
@@ -33,6 +34,7 @@ int main(int argc, char** argv) {
             std::cout << "NanoVM have own assembler than turns code like 'LD 0 12' into bytecode '0x01 0x0C 0x00 0x00 ... 0x00.\n";
             std::cout << "-c compiles .asm code of vm into bytecode and writes result into binary file, you can run immetiatly with -e\n";
             std::cout << "-o - sets name for output binary file name, by default name is 'a.out'\n";
+            std::cout << "-fno-entry0 - does not injects entry0.asm(jmp _start) into main file\n";
             return 0;
         }
         std::cout << "NanoVM [OPTIONS] <input file>:\n"
@@ -42,7 +44,8 @@ int main(int argc, char** argv) {
         << "-Wrt - prints VM runtime warnings\n"
         << "-e [filename] - execute bytecode\n"
         << "-o - sets name for output binary file\n"
-        << "-opt - optimize bytecode\n";
+        << "-opt - optimize bytecode\n"
+        << "-fno-entry0 - not include entry0.asm";
     }
     NanoVM vm{};
     for(int i=1;i<argc;i++) {
@@ -67,6 +70,9 @@ int main(int argc, char** argv) {
             }
             i++;
         }
+        else if(strcmp(argv[i], "-fno-entry0")==0) {
+            entry0 = false;
+        }
         else if(!compiling&&argv[i][0]!='-') {
             filename=argv[i];
             compiling=true;
@@ -82,6 +88,8 @@ int main(int argc, char** argv) {
     //std::cout << "Exit code " << res << '\n';
 
     assembly as;
+    as.opt=opt;
+    as.use_entry0_as=entry0;
     try {
         if(compiling) as.init(filename);
     } catch(const assembly_error &e) {

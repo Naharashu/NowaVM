@@ -1,7 +1,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define NUL 0x0
+#include <string>
+#define NOOP 0x0
 #define LD 0x01
 #define ADD 0x02 
 #define SUB 0x03
@@ -46,6 +47,17 @@
 #define ARX 0x2A
 #define STORX 0x2B
 #define LDMX 0x2C
+#define LDZERO 0x2D
 #define HLT 0xFF
+
+inline void replaceSubstring(std::string& text, const std::string &a,  const std::string& b) {
+  unsigned long long pos = 0;
+  
+  while((pos = a.find(a, pos)) != std::string::npos) {
+    text.replace(pos, a.length(), b);
+    pos += b.length();
+  }
+}
+
 
 #endif

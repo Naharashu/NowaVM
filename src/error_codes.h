@@ -19,6 +19,7 @@ inline std::string exit_code_info(uint8_t i) {
         case 4: return "NO_RETURN_ADDRESS";
         case 5: return "OUT_OF_BOUND_MEMORY_ACCESS_READ";
         case 6: return "OUT_OF_BOUND_MEMORY_ACCESS_WRITE";
+        default: return "UNKNOWN_ERROR";
     }
 }
 
