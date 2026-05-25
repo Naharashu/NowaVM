@@ -59,6 +59,7 @@ typedef struct token
 } token;
 
 std::unordered_map<std::string, uint64_t> labels;
+std::unordered_set<std::string> extern_labels;
 std::unordered_map<std::string, std::string> opcodes = {
     {"noop", "0x00"},
     {"ld", "0x01"},
@@ -243,6 +244,12 @@ public:
                     trim(msg);
                     msg.erase(0, msg.find_first_not_of(" \t"));
                     throw assembly_error("[Error - preprocessor]: " + msg + '\n');
+                } else if(line.rfind("#extern", 0)==0) {
+                    std::string name = line.substr(7);
+                    trim(name);
+                    name.erase(0, name.find_first_not_of(" \t")); 
+                    labels[name] = 0;
+                    extern_labels.emplace(name);
                 }
                 else res += line + '\n';
             }
@@ -268,7 +275,9 @@ public:
                     address++;
                 } else if((id[0]=='R'||id[0]=='r')&&std::all_of(id.begin()+1, id.end(),::isdigit)) {
                     address++;
-                } else address+=8;
+                } else { 
+                    address+=8;
+                }
             } else if(is_int(c)) {
                 while ((i < code.size() && is_int(code[i])))
                 {
@@ -285,6 +294,7 @@ public:
 
     void lex()
     {
+
         uint64_t l = 0;
         uint16_t c = 0;
         uint64_t addr=0;
@@ -469,6 +479,8 @@ class assembly {
     }
 
     std::vector<uint8_t> compile() {
+        std::string linker_sym_name=file.substr(0,file.size()-3)+"sym";
+        std::ofstream f(linker_sym_name);
         std::vector<uint8_t> compiled;
         analyze();
         while(indx<lexed.size()&&peek().t!=EOF_) {
@@ -488,7 +500,9 @@ class assembly {
                 compiled.emplace_back(std::stol(lexed[indx].val)%256);
                 consume();
             } else if(peek().t==LABEL) {
-                uint64_t val = labels[peek().val];
+                std::string id = peek().val;
+                f << "RELOC " << compiled.size() << ' ' << id << '\n';
+                uint64_t val = labels[id];
                 consume();
                 std::array<uint8_t, 8> bytes = slice64(val);
                 for(auto &x : bytes) {
@@ -505,6 +519,10 @@ class assembly {
                 consume();
             }
         }
+        for(auto &x : labels) {
+            if(!extern_labels.contains(x.first)) f << "EXPORT " << x.first << ' ' << x.second << '\n';
+        }
+        f.close();
         return compiled;
     }
 };

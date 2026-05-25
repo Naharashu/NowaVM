@@ -11,6 +11,9 @@ endif
 
 all: main
 
+linker:
+	clang++ -O2 -march=x86-64 -pipe -std=c++20 -Wall src/linker/main.cpp -o nwld
+
 main:
 	$(CXX) $(CXX_FLAGS) src/*.cpp -lasmjit  -o nanovm
 
