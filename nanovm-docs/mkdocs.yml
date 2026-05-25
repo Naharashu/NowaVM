@@ -1,0 +1,14 @@
+site_name: NanoVM Docs
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+
+  - Assembly:
+      - Instructions: assembly/instructions.md
+      - Registers: assembly/registers.md
+
+  - VM:
+      - JIT: vm/jit.md
