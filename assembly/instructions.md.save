@@ -1,0 +1,15 @@
+# NanoVM ISA
+
+---
+
+[bytecode] [opcode] [params]
+
+[comment]
+
+---
+
+### ISA
+
+| bytecode | opcode | syntax | description |
+| ---      | ---    | ---    | ---         |
+<!--| 0x00     | NOOP   | noop   | does -->

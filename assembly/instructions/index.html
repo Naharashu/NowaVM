@@ -9,8 +9,10 @@
       
       
       
-        <link rel="prev" href="../../assembly/instructions/">
+        <link rel="prev" href="../..">
       
+      
+        <link rel="next" href="../../vm/jit/">
       
       
         
@@ -21,7 +23,7 @@
     
     
       
-        <title>JIT - NanoVM Docs</title>
+        <title>Instructions - NanoVM Docs</title>
       
     
     
@@ -62,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#nanovm-jit" class="md-skip">
+        <a href="#nanovm-isa" class="md-skip">
           Skip to content
         </a>
       
@@ -98,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              JIT
+              Instructions
             
           </span>
         </div>
@@ -218,18 +220,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -250,7 +254,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -265,10 +269,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../assembly/instructions/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instructions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -284,6 +315,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#isa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ISA
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -296,7 +358,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../assembly/registers.md" class="md-nav__link">
+      <a href="../registers.md" class="md-nav__link">
         
   
   
@@ -328,20 +390,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -362,7 +422,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -377,19 +437,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../vm/jit/" class="md-nav__link">
         
   
   
@@ -405,7 +456,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -438,6 +488,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#isa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ISA
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -453,8 +522,310 @@
 
 
 
-<h1 id="nanovm-jit">NanoVM JIT</h1>
-<p>NanoVM uses asmjit for generating x64 code at the runtime.</p>
+<h1 id="nanovm-isa">NanoVM ISA</h1>
+<hr />
+<p>[bytecode] [opcode] [syntax] [desc]</p>
+<p>regX - dest</p>
+<p>regY - source</p>
+<p>imm - 64 bit integer</p>
+<p>addr - absolute VM memory address</p>
+<p>l - label</p>
+<hr />
+<h3 id="isa">ISA</h3>
+<table>
+<thead>
+<tr>
+<th>bytecode</th>
+<th>opcode</th>
+<th>syntax</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x00</td>
+<td>NOOP</td>
+<td>noop</td>
+<td>does nothing</td>
+</tr>
+<tr>
+<td>0x01</td>
+<td>LD</td>
+<td>ld reg imm</td>
+<td>loads imm into register</td>
+</tr>
+<tr>
+<td>0x02</td>
+<td>ADD</td>
+<td>add regX regY</td>
+<td>add value of regY to value of regX</td>
+</tr>
+<tr>
+<td>0x03</td>
+<td>SUB</td>
+<td>sub regX regY</td>
+<td>sub value of regY from value of regX</td>
+</tr>
+<tr>
+<td>0x04</td>
+<td>MUL</td>
+<td>mul regX regY</td>
+<td>mul value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x05</td>
+<td>DIV</td>
+<td>div regX regY</td>
+<td>div value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x06</td>
+<td>IMUL</td>
+<td>imul regX regY</td>
+<td>imul value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x07</td>
+<td>IDIV</td>
+<td>idiv regX regY</td>
+<td>idiv value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x08</td>
+<td>XOR_</td>
+<td>xor regX regY</td>
+<td>xores value of regX with value of regY</td>
+</tr>
+<tr>
+<td>0x09</td>
+<td>AND_</td>
+<td>and regX regY</td>
+<td>logic and between regX and regY</td>
+</tr>
+<tr>
+<td>0x0A</td>
+<td>OR_</td>
+<td>or regX regY</td>
+<td>logic or between regX and regY</td>
+</tr>
+<tr>
+<td>0x0B</td>
+<td>SHL</td>
+<td>shl regX regY</td>
+<td>shifts left value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x0C</td>
+<td>SHR</td>
+<td>shr regX regY</td>
+<td>shifts right value od regX by value of regY</td>
+</tr>
+<tr>
+<td>0x0D</td>
+<td>JMP</td>
+<td>jmp l/addr</td>
+<td>jumps to label address or address</td>
+</tr>
+<tr>
+<td>0x0E</td>
+<td>CMP</td>
+<td>cmp reg reg</td>
+<td>compares 2 registers</td>
+</tr>
+<tr>
+<td>0x0F</td>
+<td>JZ</td>
+<td>jz l/addr</td>
+<td>jumps if zero flag set</td>
+</tr>
+<tr>
+<td>0x10</td>
+<td>JNZ</td>
+<td>jnz l/addr</td>
+<td>jumps if zero flag is not set</td>
+</tr>
+<tr>
+<td>0x11</td>
+<td>JC</td>
+<td>jc l/addr</td>
+<td>jumps if carry flag is set</td>
+</tr>
+<tr>
+<td>0x12</td>
+<td>JNC</td>
+<td>jnc l/addr</td>
+<td>jumps if carry flag is not set</td>
+</tr>
+<tr>
+<td>0x13</td>
+<td>STORE</td>
+<td>store reg addr</td>
+<td>stores value of register into memory<a href="8 bits">addr</a></td>
+</tr>
+<tr>
+<td>0x14</td>
+<td>LDM</td>
+<td>ldm reg addr</td>
+<td>loads value 8 bit value from memory[addr] into register</td>
+</tr>
+<tr>
+<td>0x15</td>
+<td>JL</td>
+<td>jl l/addr</td>
+<td>jumps if less flag is set</td>
+</tr>
+<tr>
+<td>0x16</td>
+<td>JLE</td>
+<td>jle l/addr</td>
+<td>jumps if less and zero flags are set</td>
+</tr>
+<tr>
+<td>0x17</td>
+<td>JB</td>
+<td>jb l/addr</td>
+<td>jumps if bigger flag is set</td>
+</tr>
+<tr>
+<td>0x18</td>
+<td>JBE</td>
+<td>jbe l/addr</td>
+<td>jumps id bigger and zero flag is set</td>
+</tr>
+<tr>
+<td>0x19</td>
+<td>JMP_REGV</td>
+<td>jmprv reg</td>
+<td>gets value from register and interpretes that as jump address</td>
+</tr>
+<tr>
+<td>0x1A</td>
+<td>PUSH</td>
+<td>push reg</td>
+<td>pushes register value into virtual stack</td>
+</tr>
+<tr>
+<td>0x1B</td>
+<td>POP</td>
+<td>pop reg</td>
+<td>pops virtual stack top into register</td>
+</tr>
+<tr>
+<td>0x1C</td>
+<td>CALL</td>
+<td>call l</td>
+<td>calls funtion and pushes call address into callstack</td>
+</tr>
+<tr>
+<td>0x1D</td>
+<td>RET</td>
+<td>ret</td>
+<td>returns to the address that stored at top of callstack</td>
+</tr>
+<tr>
+<td>0x1E</td>
+<td>FADD</td>
+<td>fadd regX regY</td>
+<td>adds float value of regY to regX</td>
+</tr>
+<tr>
+<td>0x1F</td>
+<td>FSUB</td>
+<td>fsub regX regY</td>
+<td>sub float value of regY from regX</td>
+</tr>
+<tr>
+<td>0x20</td>
+<td>FMUL</td>
+<td>fmul regX regY</td>
+<td>mul float value of regY by regX</td>
+</tr>
+<tr>
+<td>0x21</td>
+<td>FDIV</td>
+<td>fdiv regX regY</td>
+<td>div float value of regY by regX</td>
+</tr>
+<tr>
+<td>0x22</td>
+<td>COPY</td>
+<td>copy regY regX</td>
+<td>copies value of regY to regX</td>
+</tr>
+<tr>
+<td>0x23</td>
+<td>SWAP</td>
+<td>swap regX regY</td>
+<td>swaps values of regX and regY</td>
+</tr>
+<tr>
+<td>0x24</td>
+<td>FMA</td>
+<td>fma reg reg reg</td>
+<td>fusion-add-mul, e.g. r0=r0*r2+r1</td>
+</tr>
+<tr>
+<td>0x25</td>
+<td>LTF</td>
+<td>ltf reg</td>
+<td>converts 64 bit integer into double, e.g. 4-&gt;4.0</td>
+</tr>
+<tr>
+<td>0x26</td>
+<td>FTL</td>
+<td>ftl reg</td>
+<td>converts double into 64 bit integer, e.g. 4.0-&gt;4</td>
+</tr>
+<tr>
+<td>0x27</td>
+<td>NOT</td>
+<td>not reg</td>
+<td>inverts bits of register</td>
+</tr>
+<tr>
+<td>0x28</td>
+<td>ROR</td>
+<td>ror regX regY</td>
+<td>rotates right value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x29</td>
+<td>ROL</td>
+<td>rol regX regY</td>
+<td>rotates left value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x2A</td>
+<td>ARX</td>
+<td>arx reg reg reg reg</td>
+<td>add-rotateleft-xor, e.g. r0=rotl(r0+r1, r2) xor r3</td>
+</tr>
+<tr>
+<td>0x2B</td>
+<td>STORX</td>
+<td>storx regX regY</td>
+<td>stores value of regX into memory[regY*8]</td>
+</tr>
+<tr>
+<td>0x2C</td>
+<td>LDMX</td>
+<td>ldmx regX regY</td>
+<td>loads value(8 bit) from memory[regY*8]</td>
+</tr>
+<tr>
+<td>0x2D</td>
+<td>LDZERO</td>
+<td>ldzero reg</td>
+<td>loads 0 into register</td>
+</tr>
+<tr>
+<td>0xFF</td>
+<td>HLT</td>
+<td>hlt</td>
+<td>ends execution of program</td>
+</tr>
+</tbody>
+</table>
 
 
 
