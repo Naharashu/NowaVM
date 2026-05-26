@@ -1,4 +1,4 @@
-# NanoVM
+# NowaVM
  
 NanoVM is small, jit vm that executed bytecode. 
 
