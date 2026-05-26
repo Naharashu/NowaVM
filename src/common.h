@@ -21,7 +21,7 @@
 #define JNZ 0x10
 #define JC 0x11
 #define JNC 0x12
-#define STORE 0x13
+#define STORE 0x13 
 #define LDM 0x14
 #define JL 0x15
 #define JLE 0x16
