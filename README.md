@@ -2,7 +2,7 @@
  
 NanoVM is small, jit vm that executed bytecode. 
 
-Current Version: 0.6
+Current Version: 0.8 dev
 
 Status: InDev
 
@@ -19,7 +19,7 @@ yay -S asmjit clang++ make
 then 
 
 ```
-git clone https://github.com/Naharashu/NanoVM.git
-cd NanoVM
+git clone https://github.com/Naharashu/NowaVM.git
+cd NowaVM
 make
 ```
