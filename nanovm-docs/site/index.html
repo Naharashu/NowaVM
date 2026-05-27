@@ -62,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#welcome-to-mkdocs" class="md-skip">
+        <a href="#welcome-to-nowavm-docs" class="md-skip">
           Skip to content
         </a>
       
@@ -254,10 +254,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#commands" class="md-nav__link">
+  <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Commands
+        Requirements
       
     </span>
   </a>
@@ -265,10 +265,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#project-layout" class="md-nav__link">
+  <a href="#installetion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project layout
+        Installetion
       
     </span>
   </a>
@@ -584,10 +584,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#commands" class="md-nav__link">
+  <a href="#requirements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Commands
+        Requirements
       
     </span>
   </a>
@@ -595,10 +595,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#project-layout" class="md-nav__link">
+  <a href="#installetion" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project layout
+        Installetion
       
     </span>
   </a>
@@ -622,21 +622,40 @@
 
 
 
-<h1 id="welcome-to-mkdocs">Welcome to MkDocs</h1>
-<p>For full documentation visit <a href="https://www.mkdocs.org">mkdocs.org</a>.</p>
-<h2 id="commands">Commands</h2>
+<h1 id="welcome-to-nowavm-docs">Welcome to NowaVM docs</h1>
+<p>Github repo: <a href="https://github.com/Naharashu/NowaVM">click</a></p>
+<h2 id="requirements">Requirements</h2>
 <ul>
-<li><code>mkdocs new [dir-name]</code> - Create a new project.</li>
-<li><code>mkdocs serve</code> - Start the live-reloading docs server.</li>
-<li><code>mkdocs build</code> - Build the documentation site.</li>
-<li><code>mkdocs -h</code> - Print help message and exit.</li>
+<li>x64 linux os</li>
+<li>GNU make</li>
+<li>asmjit</li>
+<li>clang++ (g++ is acceptable but not recomended)</li>
+<li>git</li>
 </ul>
-<h2 id="project-layout">Project layout</h2>
-<pre><code>mkdocs.yml    # The configuration file.
-docs/
-    index.md  # The documentation homepage.
-    ...       # Other markdown pages, images and other files.
-</code></pre>
+<h2 id="installetion">Installetion</h2>
+<ol>
+<li>
+<p>Installing reqiured packages:</p>
+<ul>
+<li>
+<p>Ubuntu/Debian:
+<code>sudo apt install make clang git</code></p>
+</li>
+<li>
+<p>Arch:
+<code>sudo pacman -S make clang git</code></p>
+</li>
+</ul>
+</li>
+<li>
+<p>Clonning repo:</p>
+<p><code>git clome https://github.com/Naharashu/NowaVM.git &amp;&amp; cd NowaVM</code></p>
+</li>
+<li>
+<p>Building and Installing</p>
+<p><code>make -j2 &amp;&amp; make linker &amp;&amp; make install</code></p>
+</li>
+</ol>
 
 
 

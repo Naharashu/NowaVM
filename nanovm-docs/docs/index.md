@@ -4,10 +4,10 @@ Github repo: [click](https://github.com/Naharashu/NowaVM)
 
 ## Requirements
 
-- x64 linux os
+- x64 Linux os (e.g. Ubuntu, Arch)
 - GNU make
-- asmjit
-- clang++ (g++ is acceptable but not recomended)
+- asmjit (see [asmjit build docs](https://asmjit.com/doc/group__asmjit__build.html))
+- clang++ or g++
 - git
 
 ## Installetion
@@ -27,7 +27,7 @@ Github repo: [click](https://github.com/Naharashu/NowaVM)
 2. Clonning repo:
 
 	```
-		git clome https://github.com/Naharashu/NowaVM.git && cd NowaVM
+		git clone https://github.com/Naharashu/NowaVM.git && cd NowaVM
 	```
 
 3. Building and Installing
