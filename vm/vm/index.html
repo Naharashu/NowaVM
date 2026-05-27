@@ -23,7 +23,7 @@
     
     
       
-        <title>JIT - NanoVM Docs</title>
+        <title>VM - NanoVM Docs</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#nanovm-jit" class="md-skip">
+        <a href="#nanovm" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              JIT
+              VM
             
           </span>
         </div>
@@ -391,6 +391,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    VM
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -398,7 +416,7 @@
   <span class="md-ellipsis">
     
   
-    JIT
+    VM
   
 
     
@@ -407,6 +425,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compilation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -522,6 +570,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compilation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -537,8 +604,29 @@
 
 
 
-<h1 id="nanovm-jit">NanoVM JIT</h1>
-<p>NanoVM uses asmjit for generating x64 code at the runtime.</p>
+<h1 id="nanovm">NanoVM</h1>
+<h2 id="compilation">Compilation</h2>
+<p>You can compile .asm files that contains vm assembly syntax into .bin.</p>
+<p>For example:</p>
+<pre><code>ld r0 42
+hlt
+</code></pre>
+<p>will compile into a.bin:</p>
+<pre><code>0x01 0x00 0x2A 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF
+</code></pre>
+<p>but it also will produce a.sym that contains inforamation for nwld.</p>
+<p>example b.asm:</p>
+<pre><code>func:
+ld r0 42
+ret
+
+funcx:
+hlt
+</code></pre>
+<p>b.sym will be:</p>
+<pre><code>EXPORT funcx 11
+EXPORT func 0
+</code></pre>
 
 
 
