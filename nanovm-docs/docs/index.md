@@ -10,7 +10,7 @@ Github repo: [click](https://github.com/Naharashu/NowaVM)
 - clang++ or g++
 - git
 
-## Installetion
+## Installing(Linux)
 
 1. Installing reqiured packages:
 
@@ -36,3 +36,22 @@ Github repo: [click](https://github.com/Naharashu/NowaVM)
 		make -j2 && make linker && make install
 	```
 
+## Installing(Termux)
+
+1. Installing reqiured packages:
+
+	```
+		pkg install git make clang
+	```
+
+2. Clonning repo:
+
+	```
+		git clone https://github.com/Naharashu/NowaVM.git && cd NowaVM
+	```
+
+3. Running building script:
+	
+	```
+		chmod +x termux.sh && ./termux.sh
+	```
