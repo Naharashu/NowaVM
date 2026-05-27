@@ -7,51 +7,51 @@ Github repo: [click](https://github.com/Naharashu/NowaVM)
 - x64 Linux os (e.g. Ubuntu, Arch)
 - GNU make
 - asmjit (see [asmjit build docs](https://asmjit.com/doc/group__asmjit__build.html))
-- clang++ or g++
+- clang++
 - git
 
 ## Installing(Linux)
 
-1. Installing reqiured packages:
+1. Installing required packages:
 
 	- Ubuntu/Debian:
 	```
-		sudo apt install make clang git
+	sudo apt install make clang git
 	```
 
 	- Arch:
 	```
-		sudo pacman -S make clang git
+	sudo pacman -S make clang git
 	```
 
-2. Clonning repo:
+2. Clone repository:
 
 	```
-		git clone https://github.com/Naharashu/NowaVM.git && cd NowaVM
+	git clone https://github.com/Naharashu/NowaVM.git && cd NowaVM
 	```
 
 3. Building and Installing
 
 	```
-		make -j2 && make linker && make install
+	make -j2 && make linker && make install
 	```
 
 ## Installing(Termux)
 
-1. Installing reqiured packages:
+1. Installing required packages:
 
 	```
-		pkg install git make clang
+	pkg install git make clang
 	```
 
-2. Clonning repo:
+2. Clon repository:
 
 	```
-		git clone https://github.com/Naharashu/NowaVM.git && cd NowaVM
+	git clone https://github.com/Naharashu/NowaVM.git && cd NowaVM
 	```
 
-3. Running building script:
+3. Run building script:
 	
 	```
-		chmod +x termux.sh && ./termux.sh
+	chmod +x termux.sh && ./termux.sh
 	```
