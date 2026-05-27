@@ -11,7 +11,7 @@ nav:
       - Registers: assembly/registers.md
 
   - VM:
-      - JIT: vm/jit.md
+      - VM: vm/vm.md
 
   - Linker:
       - Linker: linker/linker.md
