@@ -1,0 +1,2 @@
+RELOC 1 _start
+EXPORT _start 42

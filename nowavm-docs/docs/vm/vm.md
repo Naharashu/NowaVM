@@ -34,3 +34,16 @@ b.sym will be:
 EXPORT funcx 11
 EXPORT func 0
 ```
+
+
+## Standard library
+
+### entry0.asm
+
+entry0.asm is a file that contains only one loc:
+
+```
+jmp _start
+```
+
+Its main use case is just jump to the standard entry point.

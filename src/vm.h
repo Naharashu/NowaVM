@@ -41,12 +41,21 @@ class NanoVM {
     std::array<uint64_t, STACK_SIZE> stack;
     std::array<uint64_t, CALL_STACK_SIZE> callstack;
 
+    // INTERPRETER ONLY 
+    uint64_t sp=0;
+    uint64_t csp = 0;
+    bool zf = false;
+    bool less = false;
+    bool bigger = false;
+    // ----------------
+
     uint64_t reg[256];
     uint64_t pc=0;
     uint64_t prog_size = 0;
     bool verbose=false;
     bool opt=false;
     bool warning_rt=false;
+
 
     NanoVM() {
         code.init(rt.environment(), rt.cpu_features()); 
@@ -77,7 +86,9 @@ class NanoVM {
     }
 
 
-    void run(int32_t ip);
+    void run(uint32_t ip);
+
+    int interpret(const uint32_t &ip);
 
     bool qual_bytecode(uint64_t start, uint64_t end, const uint8_t bytecode[]);
 
@@ -89,6 +100,7 @@ class NanoVM {
     void load_program(const std::vector<uint8_t> &prog);
 
     void register_dump();
+
 
 
     ~NanoVM() {

@@ -49,6 +49,7 @@ std::unordered_map<std::string, std::string> opcodes = {
     {"storx", "0x2B"},
     {"ldmx", "0x2C"},
     {"ldzero", "0x2D"},
+    {"print_reg", "0x2E"},
     /*
     {"ADD", "1"},
     {"ADD", "1"},
@@ -330,7 +331,11 @@ void lexer::lex()
             }
             if (opcode == "" && !labels.contains(id))
             {
-                throw assembly_error("[Error - assembly:" + filename + ':' + std::to_string(l) + ':' +
+                if(id=="_start") {
+                    throw assembly_error("[Error - assembly:" + filename + ':' + std::to_string(l) + ':' +
+                                     std::to_string(c) + "]: not found entry point _start in code, use -fno-entry0 to silent this error\n");
+                }
+                else throw assembly_error("[Error - assembly:" + filename + ':' + std::to_string(l) + ':' +
                                      std::to_string(c) + "]: unknown symbol '" + id + "' found in code\n");
             }
             if (opcode == "")

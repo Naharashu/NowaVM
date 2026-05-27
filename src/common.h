@@ -48,6 +48,7 @@
 #define STORX 0x2B
 #define LDMX 0x2C
 #define LDZERO 0x2D
+#define PRINT_REG 0x2E
 #define HLT 0xFF
 
 inline void replaceSubstring(std::string& text, const std::string &a,  const std::string& b) {

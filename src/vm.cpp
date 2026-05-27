@@ -1,5 +1,17 @@
 #include "vm.h"
-void NanoVM::run(int32_t ip) {
+#include "error_codes.h"
+#include <asmjit/x86/x86operand.h>
+#include <bit>
+#include <cmath>
+#include <cstdint>
+
+extern "C" void print(uint64_t reg);
+
+void print(uint64_t reg) {
+    std::cout << reg << '\n';
+}
+
+void NanoVM::run(uint32_t ip) {
     StringLogger logger;
     code.set_logger(&logger);
     pc = ip;
@@ -270,14 +282,11 @@ void NanoVM::run(int32_t ip) {
         }
         case JMP_REGV:
         {
-            uint8_t r = FETCH;
-            uint64_t addr = this->reg[r];
-
-            if (addr < prog_size)
-            {
-                a.jmp(labels[addr]);
-            }
-            break;
+            std::cerr << "[Error]: jmp by register value is only interpreter feature\n";
+            a.pop(x86::regs::r15);
+            a.pop(x86::regs::r12);
+            a.mov(x86::regs::rax, INTERPRETER_ONLY_OPCODE);
+            a.ret();
         }
         case PUSH:
         {
@@ -565,6 +574,14 @@ void NanoVM::run(int32_t ip) {
             a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), 0);
             break;
         }
+        case PRINT_REG: {
+            uint8_t r = FETCH;
+            a.mov(x86::regs::r8, x86::regs::rdi);
+            a.mov(x86::regs::rdi, x86::qword_ptr(x86::regs::r8, r*8));
+            a.call(print);
+            a.mov(x86::regs::rdi, x86::regs::r8);
+            break;
+        }
         case HLT:
         {
             a.pop(x86::regs::r15);
@@ -583,6 +600,422 @@ void NanoVM::run(int32_t ip) {
     }
     if (this->verbose) std::cout << logger.data();
 }
+
+int NanoVM::interpret(const uint32_t &ip) {
+    uint8_t i = 0;
+    this->pc = ip;
+    while(pc < prog_size) {
+        i = FETCH;
+        switch (i)
+            {
+            case NOOP:
+                continue;
+                break;
+            case LD:
+            {
+                uint8_t r = FETCH;
+                uint64_t val = fetch64(pc);
+
+                this->reg[r] = val;
+                break;
+            }
+            case ADD:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] =(this->reg[r]+this->reg[r2]);
+                break;
+            }
+            case SUB:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] =(this->reg[r]-this->reg[r2]);
+                break;
+            }
+            case MUL:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+
+                this->reg[r] =(this->reg[r]*this->reg[r2]);
+                break;
+            }
+            case DIV:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                if(this->reg[r2]==0) {
+                    this->reg[r]=0;
+                    if(warning_rt) {
+                        std::cerr << "[Warning]: division by zero is undefined, value of r" << r << " set to 0\n";
+                    }
+                }
+                this->reg[r] = (this->reg[r]/this->reg[r2]);
+                break;
+            }
+            case IMUL:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] = (uint64_t)((int64_t)this->reg[r]*(int64_t)this->reg[r2]);
+                break;
+            }
+            case IDIV:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                if(this->reg[r2]==0) {
+                    this->reg[r]=0;
+                    if(warning_rt) {
+                        std::cerr << "[Warning]: division by zero is undefined, value of r" << r << " set to 0\n";
+                    }
+                }
+                this->reg[r] = (uint64_t)((int64_t)this->reg[r]/(int64_t)this->reg[r2]);
+                break;
+            }
+            case XOR_:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] ^= this->reg[r2];
+                break;
+            }
+            case AND_:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] &= this->reg[r2];
+                break;
+            }
+            case OR_:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] |= this->reg[r2];
+                break;
+            }
+            case SHL:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] <<= this->reg[r2];
+                break;
+            }
+            case SHR:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] >>= this->reg[r2];
+                break;
+            }
+            case JMP:
+            {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size) pc = addr;
+                if(verbose) std::cout << "[Info]: jumped to address " << addr << '\n';
+                break;
+            }
+            case CMP:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                uint64_t a = this->reg[r];
+                uint64_t b = this->reg[r2];
+                zf = a==b;
+                less = a<b;
+                bigger = a>b;
+                break;
+            }
+            case JZ:
+            {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size && zf) pc = addr;
+                if(verbose) std::cout << "[Info]: jumped if zf to address " << addr << '\n';
+                break;
+            }
+            case JNZ:
+            {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size && !zf) pc = addr;
+                if(verbose) std::cout << "[Info]: jumped if not zf to address " << addr << '\n';
+                break;
+            }
+            case JC:
+            {
+                //uint64_t addr = fetch64(pc);
+
+                return CANNOT_INTERPRET_THIS_OPCODE;
+            }
+            case JNC:
+            {
+                //uint64_t addr = fetch64(pc);
+
+                return CANNOT_INTERPRET_THIS_OPCODE;
+            }
+            case STORE:
+            {
+                uint8_t r = FETCH;
+
+                uint64_t addr = fetch64(pc);
+
+                if (addr < MEM_SIZE)
+                {
+                    this->memory[addr] = this->reg[r];
+                } else {
+                    return OUT_OF_BOUND_MEMORY_ACCESS_WRITE;
+                }
+                break;
+            }
+            case LDM:
+            {
+                uint8_t r = FETCH;
+                uint64_t addr = fetch64(pc);
+
+                if (addr < MEM_SIZE)
+                {
+                    this->reg[r] = this->memory[addr];
+                } else {
+                    return OUT_OF_BOUND_MEMORY_ACCESS_READ;
+                }
+                break;
+            }
+            case JL:
+            {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size && less) pc = addr;
+                if(verbose) std::cout << "[Info]: jumped if less to address " << addr << '\n';
+                break;
+            }
+            case JLE:
+            {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size && less && zf) pc = addr;
+                if(verbose) std::cout << "[Info]: jumped if less and zf to address " << addr << '\n';
+                break;
+            }
+            case JB:
+            {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size && bigger) pc = addr;
+                if(verbose) std::cout << "[Info]: jumped if bigger to address " << addr << '\n';
+                break;
+            }
+            case JBE:
+            {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size && bigger && zf) pc = addr;
+                if(verbose) std::cout << "[Info]: jumped if bigger and zf to address " << addr << '\n';
+                break;
+            }
+            case JMP_REGV:
+            {
+                uint8_t r = FETCH;
+                uint64_t addr = this->reg[r];
+
+                if (addr < prog_size && zf) pc = addr;
+                break;
+            }
+            case PUSH:
+            {
+                uint8_t r = FETCH;
+                if(sp<STACK_SIZE) {
+                    stack[sp++] = this->reg[r];
+                } else {
+                    return STACK_OVERFLOW;
+                }
+                break;
+            }
+            case POP:
+            {
+                uint8_t r = FETCH;
+                if(sp!=0) {
+                    this->reg[r] = stack[--sp];
+                } else {
+                    return STACK_UNDERFLOW;
+                }
+                break;
+            }
+            case CALL:
+            {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                {
+                    if(csp<CALL_STACK_SIZE) {
+                        callstack[csp++] = pc;
+                        pc = addr;
+                        if(verbose) std::cout << "[Info]: calling address " << addr << '\n';
+                    } else {
+                        return CALL_STACK_OVERFLOW;
+                    }
+                } else {
+                    std::cerr << "[Error]: calling out-of-bounds, called address " << addr << '\n';
+                    return OUT_OF_BOUND_JUMP;
+                }
+                break;
+            }
+            case RET:
+            {
+                if(csp==0) {
+                    std::cerr << "[Error]: no return address found in call stack, ret called at address " << pc << '\n';
+                } else {
+                    uint64_t before = pc;
+                    pc = callstack[--csp];
+                    if(verbose) std::cout << "[Info]: returning to address " << pc << " from " << before << '\n';
+                }
+                break;
+            }
+            case FADD:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] = fadd((double)this->reg[r], (double)this->reg[r2]);
+                break;
+            }
+            case FSUB:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] = fsub((double)this->reg[r], (double)this->reg[r2]);
+                break;
+            }
+            case FMUL:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] = fmul((double)this->reg[r], (double)this->reg[r2]);
+                break;
+            }
+            case FDIV:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] = fdiv((double)this->reg[r], (double)this->reg[r2]);
+                break;
+            }
+            case COPY:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r2] = this->reg[r];
+                break;
+            }
+            case SWAP:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                uint64_t temp = this->reg[r2];
+                this->reg[r2] = this->reg[r];
+                this->reg[r] = temp;
+                break;
+            }
+            case FMA:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                uint8_t r3 = FETCH;
+
+                this->reg[r] = std::fma((double)this->reg[r], (double)this->reg[r2], this->reg[r3]);
+                break;
+            }
+            case LTF:
+            {
+                uint8_t r = FETCH;
+                uint64_t val = fetch64(pc);
+
+                this->reg[r] = (double)val;
+                break;
+            }
+            case FTL:
+            {
+                uint8_t r = FETCH;
+                this->reg[r] = std::round(this->reg[r]);
+                break;
+            }
+            case NOT:
+            {
+                uint8_t r = FETCH;
+                this->reg[r] = ~this->reg[r];
+                break;
+            }
+            case ROR:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] = std::rotr(this->reg[r], (uint8_t)this->reg[r2]&63);
+                break;
+            }
+            case ROL:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                this->reg[r] = std::rotl(this->reg[r], (uint8_t)this->reg[r2]&63);
+                break;
+            }
+            case ARX:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                uint8_t r3 = FETCH;
+                uint8_t r4 = FETCH;
+                this->reg[r] = std::rotl((this->reg[r]+this->reg[r2]), (uint8_t)this->reg[r3]&63)^this->reg[r4];
+                break;
+            }
+            case STORX:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+
+                if(r2*8<MEM_SIZE) {
+                    this->memory[(unsigned long)r2*8] = this->reg[r];
+                } else {
+                    return OUT_OF_BOUND_MEMORY_ACCESS_WRITE;
+                }
+
+                break;
+            }
+            case LDMX:
+            {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+
+                if(r2*8<MEM_SIZE) {
+                    this->reg[r] = this->memory[(unsigned long)r2*8];
+                } else {
+                    return OUT_OF_BOUND_MEMORY_ACCESS_READ;
+                }
+                break;
+            }
+            case LDZERO:
+            {
+                uint8_t r = FETCH;
+                this->reg[r] = 0;
+                break;
+            }
+            case HLT:
+            {
+                return 0;
+            }
+            default:
+            {
+                std::cerr << "[Error]: Unknown instruction '" << (int)this->memory[pc] << "', stopping execution...\n";
+                pc = 0;
+                return UNKNOWN_ERROR;
+            }
+        }
+    }
+    return UNKNOWN_ERROR;
+}
+
+
 bool NanoVM::qual_bytecode(uint64_t start, uint64_t end, const uint8_t bytecode[])
 {
     if (end >= prog_size)
@@ -699,6 +1132,7 @@ void NanoVM::analyzer(std::vector<uint8_t> &prog)
             prog[i] = NOOP;
             prog[i + 1] = NOOP;
             prog[i + 2] = NOOP;
+            i+=3;
         }
         else
             i++;

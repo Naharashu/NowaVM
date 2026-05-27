@@ -1,5 +1,3 @@
-
-
 #include <cstdint>
 #include <cstring>
 #include <fstream>
@@ -18,9 +16,14 @@ int main(int argc, char** argv) {
     bool runit_file = false;
     std::string filename_bytecode="";
     bool compiling = false;
-    std::string output_file_name="a.bin";
+    std::string output_file_name="out.bin";
     bool opt = false;
     bool entry0 = true;
+    #ifndef __aarch64__
+    bool interpret_this=false;
+    #else
+    bool interpret_this=true;
+    #endif
     if(argc<2) {
         std::cout << "Usage: nanovm [OPTIONS]\nType nanovm --help for more info\n";
         return 0;
@@ -33,7 +36,7 @@ int main(int argc, char** argv) {
         if(argc>2&&strcmp(argv[2], "asm")==0) {
             std::cout << "NanoVM have own assembler than turns code like 'LD 0 12' into bytecode '0x01 0x0C 0x00 0x00 ... 0x00.\n";
             std::cout << "-c compiles .asm code of vm into bytecode and writes result into binary file, you can run immetiatly with -e\n";
-            std::cout << "-o - sets name for output binary file name, by default name is 'a.out'\n";
+            std::cout << "-o - sets name for output binary file name, by default name is 'out.bin'\n";
             std::cout << "-fno-entry0 - does not injects entry0.asm(jmp _start) into main file\n";
             return 0;
         }
@@ -45,7 +48,9 @@ int main(int argc, char** argv) {
         << "-e [filename] - execute bytecode\n"
         << "-o - sets name for output binary file\n"
         << "-opt - optimize bytecode\n"
-        << "-fno-entry0 - not include entry0.asm";
+        << "-fno-entry0 - not include entry0.asm\n"
+        << "-interpret - use interpreter for execution\n";
+        return 0;
     }
     NanoVM vm{};
     for(int i=1;i<argc;i++) {
@@ -72,6 +77,9 @@ int main(int argc, char** argv) {
         }
         else if(strcmp(argv[i], "-fno-entry0")==0) {
             entry0 = false;
+        }
+        else if(strcmp(argv[i], "-interpret")==0) {
+            interpret_this = true;
         }
         else if(!compiling&&argv[i][0]!='-') {
             filename=argv[i];
@@ -116,8 +124,13 @@ int main(int argc, char** argv) {
     if(runit) {
         vm.load_program(res);
         vm.opt=opt;
-        vm.run(0);
-        int exit_code = vm.res();
+        int exit_code=0;
+        if(!interpret_this) {
+            vm.run(0);
+            exit_code = vm.res();
+        } else {
+            exit_code = vm.interpret(0);
+        }
         std::cout << "Program exited with code " << exit_code << '(' << exit_code_info(exit_code) << ")\n";
     }
 
@@ -133,8 +146,13 @@ int main(int argc, char** argv) {
             bytecode.emplace_back(c);
         }
         vm.load_program(bytecode);
-        vm.run(0);
-        int exit_code = vm.res();
+        int exit_code=0;
+        if(!interpret_this) {
+            vm.run(0);
+            exit_code = vm.res();
+        } else {
+            exit_code = vm.interpret(0);
+        }
         std::cout << "Program exited with code " << exit_code << '(' << exit_code_info(exit_code) << ")\n";
     }
 
