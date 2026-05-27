@@ -12,3 +12,6 @@ nav:
 
   - VM:
       - JIT: vm/jit.md
+
+  - Linker:
+      - Linker: linker/linker.md

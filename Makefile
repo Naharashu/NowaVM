@@ -11,16 +11,18 @@ $(error "ERROR - ASMJIT is not found on that pc, please install asmjit")
 endif
 
 ifeq ($(CLANG),)
-$(error "ERROR - Clang is not found on that pc, please install asmjit")
+$(error "ERROR - Clang is not found on that pc, please install clang, use 'make gcc' for g++ version")
 endif
 
-.PHONY: all linker debug native install clean main
+.PHONY: all linker debug native install clean main gcc
 
+gcc:
+	make CXX=g++ CXX_FLAGS="-O2 -g -pipe -std=c++20 -Wall -march=x86-64"
 
 all: main
 
 linker:
-	clang++ -O2 -g1 -march=x86-64-v2 -pipe -std=c++20 -Wall src/linker/linker.cpp -o nwld
+	$(CXX) -O2 -g1 -march=x86-64-v2 -pipe -std=c++20 -Wall src/linker/linker.cpp -o nwld
 
 main: $(CXX_OBJECTS)
 	$(CXX) $(CXX_FLAGS) $(CXX_OBJECTS) -lasmjit  -o nanovm

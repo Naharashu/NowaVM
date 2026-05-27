@@ -1,17 +1,38 @@
-# Welcome to MkDocs
+# Welcome to NowaVM docs
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+Github repo: [click](https://github.com/Naharashu/NowaVM)
 
-## Commands
+## Requirements
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+- x64 linux os
+- GNU make
+- asmjit
+- clang++ (g++ is acceptable but not recomended)
+- git
 
-## Project layout
+## Installetion
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+1. Installing reqiured packages:
+
+	- Ubuntu/Debian:
+	```
+		sudo apt install make clang git
+	```
+
+	- Arch:
+	```
+		sudo pacman -S make clang git
+	```
+
+2. Clonning repo:
+
+	```
+		git clome https://github.com/Naharashu/NowaVM.git && cd NowaVM
+	```
+
+3. Building and Installing
+
+	```
+		make -j2 && make linker && make install
+	```
+
