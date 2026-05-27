@@ -265,10 +265,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installetion" class="md-nav__link">
+  <a href="#installinglinux" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installetion
+        Installing(Linux)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installingtermux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing(Termux)
       
     </span>
   </a>
@@ -595,10 +606,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installetion" class="md-nav__link">
+  <a href="#installinglinux" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installetion
+        Installing(Linux)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installingtermux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing(Termux)
       
     </span>
   </a>
@@ -626,13 +648,13 @@
 <p>Github repo: <a href="https://github.com/Naharashu/NowaVM">click</a></p>
 <h2 id="requirements">Requirements</h2>
 <ul>
-<li>x64 linux os</li>
+<li>x64 Linux os (e.g. Ubuntu, Arch)</li>
 <li>GNU make</li>
-<li>asmjit</li>
-<li>clang++ (g++ is acceptable but not recomended)</li>
+<li>asmjit (see <a href="https://asmjit.com/doc/group__asmjit__build.html">asmjit build docs</a>)</li>
+<li>clang++ or g++</li>
 <li>git</li>
 </ul>
-<h2 id="installetion">Installetion</h2>
+<h2 id="installinglinux">Installing(Linux)</h2>
 <ol>
 <li>
 <p>Installing reqiured packages:</p>
@@ -649,11 +671,26 @@
 </li>
 <li>
 <p>Clonning repo:</p>
-<p><code>git clome https://github.com/Naharashu/NowaVM.git &amp;&amp; cd NowaVM</code></p>
+<p><code>git clone https://github.com/Naharashu/NowaVM.git &amp;&amp; cd NowaVM</code></p>
 </li>
 <li>
 <p>Building and Installing</p>
 <p><code>make -j2 &amp;&amp; make linker &amp;&amp; make install</code></p>
+</li>
+</ol>
+<h2 id="installingtermux">Installing(Termux)</h2>
+<ol>
+<li>
+<p>Installing reqiured packages:</p>
+<p><code>pkg install git make clang</code></p>
+</li>
+<li>
+<p>Clonning repo:</p>
+<p><code>git clone https://github.com/Naharashu/NowaVM.git &amp;&amp; cd NowaVM</code></p>
+</li>
+<li>
+<p>Running building script:</p>
+<p><code>chmod +x termux.sh &amp;&amp; ./termux.sh</code></p>
 </li>
 </ol>
 
