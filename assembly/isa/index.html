@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>ISA - NowaVM Docs</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "ISA";
+        var mkdocs_page_input_path = "assembly/isa.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/shell.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/plaintext.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> NowaVM Docs
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Assembly</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">ISA</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#isa">ISA</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../registers.md">Registers</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">VM</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../vm/vm/">VM</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Linker</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../linker/linker/">Linker</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">NowaVM Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Assembly</li>
+      <li class="breadcrumb-item active">ISA</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/Naharashu/NowaVM/edit/master/docs/assembly/isa.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="nanovm-isa">NanoVM ISA</h1>
+<hr />
+<p>[bytecode] [opcode] [syntax] [desc]</p>
+<p>regX - dest</p>
+<p>regY - source</p>
+<p>imm - 64 bit integer</p>
+<p>addr - absolute VM memory address</p>
+<p>l - label</p>
+<hr />
+<h3 id="isa">ISA</h3>
+<table>
+<thead>
+<tr>
+<th>bytecode</th>
+<th>opcode</th>
+<th>syntax</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x00</td>
+<td>NOOP</td>
+<td>noop</td>
+<td>does nothing</td>
+</tr>
+<tr>
+<td>0x01</td>
+<td>LD</td>
+<td>ld reg imm</td>
+<td>loads imm into register</td>
+</tr>
+<tr>
+<td>0x02</td>
+<td>ADD</td>
+<td>add regX regY</td>
+<td>add value of regY to value of regX</td>
+</tr>
+<tr>
+<td>0x03</td>
+<td>SUB</td>
+<td>sub regX regY</td>
+<td>sub value of regY from value of regX</td>
+</tr>
+<tr>
+<td>0x04</td>
+<td>MUL</td>
+<td>mul regX regY</td>
+<td>mul value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x05</td>
+<td>DIV</td>
+<td>div regX regY</td>
+<td>div value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x06</td>
+<td>IMUL</td>
+<td>imul regX regY</td>
+<td>imul value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x07</td>
+<td>IDIV</td>
+<td>idiv regX regY</td>
+<td>idiv value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x08</td>
+<td>XOR_</td>
+<td>xor regX regY</td>
+<td>xores value of regX with value of regY</td>
+</tr>
+<tr>
+<td>0x09</td>
+<td>AND_</td>
+<td>and regX regY</td>
+<td>logic and between regX and regY</td>
+</tr>
+<tr>
+<td>0x0A</td>
+<td>OR_</td>
+<td>or regX regY</td>
+<td>logic or between regX and regY</td>
+</tr>
+<tr>
+<td>0x0B</td>
+<td>SHL</td>
+<td>shl regX regY</td>
+<td>shifts left value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x0C</td>
+<td>SHR</td>
+<td>shr regX regY</td>
+<td>shifts right value od regX by value of regY</td>
+</tr>
+<tr>
+<td>0x0D</td>
+<td>JMP</td>
+<td>jmp l/addr</td>
+<td>jumps to label address or address</td>
+</tr>
+<tr>
+<td>0x0E</td>
+<td>CMP</td>
+<td>cmp reg reg</td>
+<td>compares 2 registers</td>
+</tr>
+<tr>
+<td>0x0F</td>
+<td>JZ</td>
+<td>jz l/addr</td>
+<td>jumps if zero flag set</td>
+</tr>
+<tr>
+<td>0x10</td>
+<td>JNZ</td>
+<td>jnz l/addr</td>
+<td>jumps if zero flag is not set</td>
+</tr>
+<tr>
+<td>0x11</td>
+<td>JC</td>
+<td>jc l/addr</td>
+<td>jumps if carry flag is set</td>
+</tr>
+<tr>
+<td>0x12</td>
+<td>JNC</td>
+<td>jnc l/addr</td>
+<td>jumps if carry flag is not set</td>
+</tr>
+<tr>
+<td>0x13</td>
+<td>STORE</td>
+<td>store reg addr</td>
+<td>stores value of register into memory<a href="8 bits">addr</a></td>
+</tr>
+<tr>
+<td>0x14</td>
+<td>LDM</td>
+<td>ldm reg addr</td>
+<td>loads value 8 bit value from memory[addr] into register</td>
+</tr>
+<tr>
+<td>0x15</td>
+<td>JL</td>
+<td>jl l/addr</td>
+<td>jumps if less flag is set</td>
+</tr>
+<tr>
+<td>0x16</td>
+<td>JLE</td>
+<td>jle l/addr</td>
+<td>jumps if less and zero flags are set</td>
+</tr>
+<tr>
+<td>0x17</td>
+<td>JB</td>
+<td>jb l/addr</td>
+<td>jumps if bigger flag is set</td>
+</tr>
+<tr>
+<td>0x18</td>
+<td>JBE</td>
+<td>jbe l/addr</td>
+<td>jumps id bigger and zero flag is set</td>
+</tr>
+<tr>
+<td>0x19</td>
+<td>JMP_REGV</td>
+<td>jmprv reg</td>
+<td>gets value from register and interpretes that as jump address</td>
+</tr>
+<tr>
+<td>0x1A</td>
+<td>PUSH</td>
+<td>push reg</td>
+<td>pushes register value into virtual stack</td>
+</tr>
+<tr>
+<td>0x1B</td>
+<td>POP</td>
+<td>pop reg</td>
+<td>pops virtual stack top into register</td>
+</tr>
+<tr>
+<td>0x1C</td>
+<td>CALL</td>
+<td>call l</td>
+<td>calls funtion and pushes call address into callstack</td>
+</tr>
+<tr>
+<td>0x1D</td>
+<td>RET</td>
+<td>ret</td>
+<td>returns to the address that stored at top of callstack</td>
+</tr>
+<tr>
+<td>0x1E</td>
+<td>FADD</td>
+<td>fadd regX regY</td>
+<td>adds float value of regY to regX</td>
+</tr>
+<tr>
+<td>0x1F</td>
+<td>FSUB</td>
+<td>fsub regX regY</td>
+<td>sub float value of regY from regX</td>
+</tr>
+<tr>
+<td>0x20</td>
+<td>FMUL</td>
+<td>fmul regX regY</td>
+<td>mul float value of regY by regX</td>
+</tr>
+<tr>
+<td>0x21</td>
+<td>FDIV</td>
+<td>fdiv regX regY</td>
+<td>div float value of regY by regX</td>
+</tr>
+<tr>
+<td>0x22</td>
+<td>COPY</td>
+<td>copy regY regX</td>
+<td>copies value of regY to regX</td>
+</tr>
+<tr>
+<td>0x23</td>
+<td>SWAP</td>
+<td>swap regX regY</td>
+<td>swaps values of regX and regY</td>
+</tr>
+<tr>
+<td>0x24</td>
+<td>FMA</td>
+<td>fma reg reg reg</td>
+<td>fusion-add-mul, e.g. r0=r0*r2+r1</td>
+</tr>
+<tr>
+<td>0x25</td>
+<td>LTF</td>
+<td>ltf reg</td>
+<td>converts 64 bit integer into double, e.g. 4-&gt;4.0</td>
+</tr>
+<tr>
+<td>0x26</td>
+<td>FTL</td>
+<td>ftl reg</td>
+<td>converts double into 64 bit integer, e.g. 4.0-&gt;4</td>
+</tr>
+<tr>
+<td>0x27</td>
+<td>NOT</td>
+<td>not reg</td>
+<td>inverts bits of register</td>
+</tr>
+<tr>
+<td>0x28</td>
+<td>ROR</td>
+<td>ror regX regY</td>
+<td>rotates right value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x29</td>
+<td>ROL</td>
+<td>rol regX regY</td>
+<td>rotates left value of regX by value of regY</td>
+</tr>
+<tr>
+<td>0x2A</td>
+<td>ARX</td>
+<td>arx reg reg reg reg</td>
+<td>add-rotateleft-xor, e.g. r0=rotl(r0+r1, r2) xor r3</td>
+</tr>
+<tr>
+<td>0x2B</td>
+<td>STORX</td>
+<td>storx regX regY</td>
+<td>stores value of regX into memory[regY*8]</td>
+</tr>
+<tr>
+<td>0x2C</td>
+<td>LDMX</td>
+<td>ldmx regX regY</td>
+<td>loads value(8 bit) from memory[regY*8]</td>
+</tr>
+<tr>
+<td>0x2D</td>
+<td>LDZERO</td>
+<td>ldzero reg</td>
+<td>loads 0 into register</td>
+</tr>
+<tr>
+<td>0xFF</td>
+<td>HLT</td>
+<td>hlt</td>
+<td>ends execution of program</td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../.." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../vm/vm/" class="btn btn-neutral float-right" title="VM">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/Naharashu/NowaVM" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../.." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../vm/vm/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
