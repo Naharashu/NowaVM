@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="uk" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -11,30 +11,32 @@
       
       
       
+        <link rel="prev" href="../../">
       
-        <link rel="next" href="assembly/isa/">
+      
+        <link rel="next" href="../../vm/vm/">
       
       
         
-          <link rel="alternate" href="/en/" hreflang="en">
+          <link rel="alternate" href="../../../assembly/isa/" hreflang="en">
         
-          <link rel="alternate" href="/uk/" hreflang="uk">
+          <link rel="alternate" href="./" hreflang="uk">
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>NowaVM Docs</title>
+        <title>ISA - NowaVM Docs</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,7 +55,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,8 +78,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#welcome-to-nowavm-docs" class="md-skip">
-          Skip to content
+        <a href="#nowavm-isa" class="md-skip">
+          Перейти до змісту
         </a>
       
     </div>
@@ -91,8 +93,8 @@
   
 
 <header class="md-header md-header--shadow" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="NowaVM Docs" class="md-header__button md-logo" aria-label="NowaVM Docs" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Хедер">
+    <a href="../../" title="NowaVM Docs" class="md-header__button md-logo" aria-label="NowaVM Docs" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -112,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              ISA
             
           </span>
         </div>
@@ -126,20 +128,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Select language">
+    <button class="md-header__button md-icon" aria-label="Обрати мову">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="/en/" hreflang="en" class="md-select__link">
+            <a href="../../../assembly/isa/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="/uk/" hreflang="uk" class="md-select__link">
+            <a href="./" hreflang="uk" class="md-select__link">
               Українська
             </a>
           </li>
@@ -160,16 +162,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Пошук" placeholder="Пошук" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="Шукати">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Очистити" aria-label="Очистити" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -180,7 +182,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            Пошук розпочато
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -192,7 +194,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/Naharashu/NowaVM" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/Naharashu/NowaVM" title="Перейти до вихідного коду" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -226,9 +228,9 @@
 
 
 
-<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+<nav class="md-nav md-nav--primary" aria-label="Навігація" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="NowaVM Docs" class="md-nav__button md-logo" aria-label="NowaVM Docs" data-md-component="logo">
+    <a href="../../" title="NowaVM Docs" class="md-nav__button md-logo" aria-label="NowaVM Docs" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -238,7 +240,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/Naharashu/NowaVM" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/Naharashu/NowaVM" title="Перейти до вихідного коду" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
@@ -253,6 +255,82 @@
     
       
       
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assembly
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assembly
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
   
   
     
@@ -274,7 +352,7 @@
   <span class="md-ellipsis">
     
   
-    Home
+    ISA
   
 
     
@@ -285,134 +363,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="." class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Requirements
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installinglinux" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Installing(Linux)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installingtermux" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Installing(Termux)
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Assembly
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Assembly
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="assembly/isa/" class="md-nav__link">
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -428,6 +379,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Зміст">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Зміст
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#isa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ISA
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -440,7 +422,7 @@
   
   
     <li class="md-nav__item">
-      <a href="assembly/registers.md" class="md-nav__link">
+      <a href="../../../assembly/registers.md" class="md-nav__link">
         
   
   
@@ -522,7 +504,7 @@
   
   
     <li class="md-nav__item">
-      <a href="vm/vm/" class="md-nav__link">
+      <a href="../../vm/vm/" class="md-nav__link">
         
   
   
@@ -604,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="linker/linker/" class="md-nav__link">
+      <a href="../../linker/linker/" class="md-nav__link">
         
   
   
@@ -645,7 +627,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="Зміст">
   
   
   
@@ -654,37 +636,15 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      Зміст
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
+  <a href="#isa" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Requirements
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installinglinux" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Installing(Linux)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installingtermux" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Installing(Termux)
+        ISA
       
     </span>
   </a>
@@ -711,59 +671,310 @@
   
 
 
-<h1 id="welcome-to-nowavm-docs">Welcome to NowaVM docs</h1>
-<p>Github repo: <a href="https://github.com/Naharashu/NowaVM">click</a></p>
-<p>Issues: <a href="https://github.com/Naharashu/NowaVM/issues">click</a></p>
-<h2 id="requirements">Requirements</h2>
-<ul>
-<li>x64 Linux os (e.g. Ubuntu, Arch)</li>
-<li>GNU make</li>
-<li>asmjit (see <a href="https://asmjit.com/doc/group__asmjit__build.html">asmjit build docs</a>)</li>
-<li>clang++</li>
-<li>git</li>
-</ul>
-<h2 id="installinglinux">Installing(Linux)</h2>
-<ol>
-<li>
-<p>Installing required packages:</p>
-</li>
-<li>
-<p>Ubuntu/Debian:
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="go">sudo apt install make clang git</span>
-</span></code></pre></div></p>
-</li>
-<li>
-<p>Arch:
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="go">sudo pacman -S make clang git</span>
-</span></code></pre></div></p>
-</li>
-<li>
-<p>Clone repository:</p>
-</li>
-</ol>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="go">git clone https://github.com/Naharashu/NowaVM.git &amp;&amp; cd NowaVM</span>
-</span></code></pre></div>
-<ol>
-<li>Building and Installing</li>
-</ol>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="go">make -j2 &amp;&amp; make linker &amp;&amp; make install</span>
-</span></code></pre></div>
-<h2 id="installingtermux">Installing(Termux)</h2>
-<ol>
-<li>Installing required packages:</li>
-</ol>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="go">pkg install git make clang</span>
-</span></code></pre></div>
-<ol>
-<li>Clon repository:</li>
-</ol>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="go">git clone https://github.com/Naharashu/NowaVM.git &amp;&amp; cd NowaVM</span>
-</span></code></pre></div>
-<ol>
-<li>Run building script:</li>
-</ol>
-<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="go">chmod +x termux.sh &amp;&amp; ./termux.sh</span>
-</span></code></pre></div>
+<h1 id="nowavm-isa">NowaVM ISA</h1>
+<hr />
+<p>[bytecode] [opcode] [syntax] [desc]</p>
+<p>regX - регістр признечення</p>
+<p>regY - регістр джерела</p>
+<p>imm - 64 бітне число</p>
+<p>addr - абсолютна адреса пам'яті ВМ</p>
+<p>l - мітка</p>
+<hr />
+<h3 id="isa">ISA</h3>
+<table>
+<thead>
+<tr>
+<th>байткод</th>
+<th>назва опкоду</th>
+<th>синтаксис</th>
+<th>опис</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x00</td>
+<td>NOOP</td>
+<td>noop</td>
+<td>нічого не робить</td>
+</tr>
+<tr>
+<td>0x01</td>
+<td>LD</td>
+<td>ld reg imm</td>
+<td>завантажити число у регістр</td>
+</tr>
+<tr>
+<td>0x02</td>
+<td>ADD</td>
+<td>add regX regY</td>
+<td>додати regY до regX</td>
+</tr>
+<tr>
+<td>0x03</td>
+<td>SUB</td>
+<td>sub regX regY</td>
+<td>відняти regY від regX</td>
+</tr>
+<tr>
+<td>0x04</td>
+<td>MUL</td>
+<td>mul regX regY</td>
+<td>помножити regX на regY</td>
+</tr>
+<tr>
+<td>0x05</td>
+<td>DIV</td>
+<td>div regX regY</td>
+<td>поділити regX на regY</td>
+</tr>
+<tr>
+<td>0x06</td>
+<td>IMUL</td>
+<td>imul regX regY</td>
+<td>знакове множення regX на regY</td>
+</tr>
+<tr>
+<td>0x07</td>
+<td>IDIV</td>
+<td>idiv regX regY</td>
+<td>знакове ділення regX на regY</td>
+</tr>
+<tr>
+<td>0x08</td>
+<td>XOR_</td>
+<td>xor regX regY</td>
+<td>виключне або між regX та regY</td>
+</tr>
+<tr>
+<td>0x09</td>
+<td>AND_</td>
+<td>and regX regY</td>
+<td>логічне та між regX та regY</td>
+</tr>
+<tr>
+<td>0x0A</td>
+<td>OR_</td>
+<td>or regX regY</td>
+<td>логічне або між regX та regY</td>
+</tr>
+<tr>
+<td>0x0B</td>
+<td>SHL</td>
+<td>shl regX regY</td>
+<td>зсунути вліво значення regX на значення regY</td>
+</tr>
+<tr>
+<td>0x0C</td>
+<td>SHR</td>
+<td>shr regX regY</td>
+<td>зсунути вправо regX на значення regY</td>
+</tr>
+<tr>
+<td>0x0D</td>
+<td>JMP</td>
+<td>jmp l/addr</td>
+<td>перейти до адреси або мітки</td>
+</tr>
+<tr>
+<td>0x0E</td>
+<td>CMP</td>
+<td>cmp reg reg</td>
+<td>порівняти два регістри</td>
+</tr>
+<tr>
+<td>0x0F</td>
+<td>JZ</td>
+<td>jz l/addr</td>
+<td>стрибнути якщо нульовий прапорець</td>
+</tr>
+<tr>
+<td>0x10</td>
+<td>JNZ</td>
+<td>jnz l/addr</td>
+<td>стрибнути якщо не нульовий прапорець</td>
+</tr>
+<tr>
+<td>0x11</td>
+<td>JC</td>
+<td>jc l/addr</td>
+<td>стрибнути якщо carry прапорець</td>
+</tr>
+<tr>
+<td>0x12</td>
+<td>JNC</td>
+<td>jnc l/addr</td>
+<td>стрибнути якщо не carry прапорець</td>
+</tr>
+<tr>
+<td>0x13</td>
+<td>STORE</td>
+<td>store reg addr</td>
+<td>зберігає 8 бітне значення регістру у memory<a href="8 бітів">addr</a></td>
+</tr>
+<tr>
+<td>0x14</td>
+<td>LDM</td>
+<td>ldm reg addr</td>
+<td>завантажує 8 бітне значення з memory[addr] в регістр</td>
+</tr>
+<tr>
+<td>0x15</td>
+<td>JL</td>
+<td>jl l/addr</td>
+<td>стрибнути якщо менше</td>
+</tr>
+<tr>
+<td>0x16</td>
+<td>JLE</td>
+<td>jle l/addr</td>
+<td>стрибнути якщо менше та нульовий прапорець</td>
+</tr>
+<tr>
+<td>0x17</td>
+<td>JB</td>
+<td>jb l/addr</td>
+<td>стрибнути якщо більше</td>
+</tr>
+<tr>
+<td>0x18</td>
+<td>JBE</td>
+<td>jbe l/addr</td>
+<td>стрибнути якщо більше та нульовий прапорець</td>
+</tr>
+<tr>
+<td>0x19</td>
+<td>JMP_REGV</td>
+<td>jmprv reg</td>
+<td>(тільки в інтерпретаторі) бере значення з регістра та інтерпретує її як адресу для переходу</td>
+</tr>
+<tr>
+<td>0x1A</td>
+<td>PUSH</td>
+<td>push reg</td>
+<td>зберігає значення регістра на вершину стеку</td>
+</tr>
+<tr>
+<td>0x1B</td>
+<td>POP</td>
+<td>pop reg</td>
+<td>зберігає значення з вершини стеку у регістр та зменшує sp на 1</td>
+</tr>
+<tr>
+<td>0x1C</td>
+<td>CALL</td>
+<td>call l</td>
+<td>викликає функцію та зберігає адресу на callstack</td>
+</tr>
+<tr>
+<td>0x1D</td>
+<td>RET</td>
+<td>ret</td>
+<td>повертається до адреси збереженої на вершині callstack</td>
+</tr>
+<tr>
+<td>0x1E</td>
+<td>FADD</td>
+<td>fadd regX regY</td>
+<td>додавання з плавучою комою regY до regX</td>
+</tr>
+<tr>
+<td>0x1F</td>
+<td>FSUB</td>
+<td>fsub regX regY</td>
+<td>віднімання з плавучою комою regY від regX</td>
+</tr>
+<tr>
+<td>0x20</td>
+<td>FMUL</td>
+<td>fmul regX regY</td>
+<td>множення з плавучою комою regY на regX</td>
+</tr>
+<tr>
+<td>0x21</td>
+<td>FDIV</td>
+<td>fdiv regX regY</td>
+<td>ділення з плавучою комою regY на regX</td>
+</tr>
+<tr>
+<td>0x22</td>
+<td>COPY</td>
+<td>copy regY regX</td>
+<td>копіює значення regY до regX</td>
+</tr>
+<tr>
+<td>0x23</td>
+<td>SWAP</td>
+<td>swap regX regY</td>
+<td>міняє місцями значення regX та regY</td>
+</tr>
+<tr>
+<td>0x24</td>
+<td>FMA</td>
+<td>fma reg reg reg</td>
+<td>fusion-add-mul, наприклад. r0=r0*r2+r1</td>
+</tr>
+<tr>
+<td>0x25</td>
+<td>LTF</td>
+<td>ltf reg</td>
+<td>завантажує 64 бітне число та перетворює його у число з плавучою комою, наприклад 4-&gt;4.0</td>
+</tr>
+<tr>
+<td>0x26</td>
+<td>FTL</td>
+<td>ftl reg</td>
+<td>конвертує значення з плавучою комою назад у 64 бітне число, наприклад 4.0-&gt;4</td>
+</tr>
+<tr>
+<td>0x27</td>
+<td>NOT</td>
+<td>not reg</td>
+<td>інвертує значення регістра побітово</td>
+</tr>
+<tr>
+<td>0x28</td>
+<td>ROR</td>
+<td>ror regX regY</td>
+<td>прокручує вправо значення regX на значення regY</td>
+</tr>
+<tr>
+<td>0x29</td>
+<td>ROL</td>
+<td>rol regX regY</td>
+<td>прокручує вліво значення regX на значення regY</td>
+</tr>
+<tr>
+<td>0x2A</td>
+<td>ARX</td>
+<td>arx reg reg reg reg</td>
+<td>add-rotateleft-xor, приклад r0=rotl(r0+r1, r2) xor r3</td>
+</tr>
+<tr>
+<td>0x2B</td>
+<td>STORX</td>
+<td>storx regX regY</td>
+<td>зберігає нижні 8 бітів значення regX в  memory[regY*8]</td>
+</tr>
+<tr>
+<td>0x2C</td>
+<td>LDMX</td>
+<td>ldmx regX regY</td>
+<td>завантажує 8 бітне значення з memory[regY*8]</td>
+</tr>
+<tr>
+<td>0x2D</td>
+<td>LDZERO</td>
+<td>ldzero reg</td>
+<td>завантажує 0 у регістр</td>
+</tr>
+<tr>
+<td>0xFF</td>
+<td>HLT</td>
+<td>hlt</td>
+<td>закінчує виконання програми</td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -813,10 +1024,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": [], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": [], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0456\u0439\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u0421\u043a\u043e\u043f\u0456\u044e\u0432\u0430\u0442\u0438 \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0429\u0435 1 \u0437\u0431\u0456\u0433 \u043d\u0430 \u0446\u0456\u0439 \u0441\u0442\u043e\u0440\u0456\u043d\u0446\u0456", "search.result.more.other": "\u0429\u0435 # \u0437\u0431\u0456\u0433\u0456\u0432 \u043d\u0430 \u0446\u0456\u0439 \u0441\u0442\u043e\u0440\u0456\u043d\u0446\u0456", "search.result.none": "\u0417\u0431\u0456\u0433\u0456\u0432 \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u0417\u043d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0437\u0431\u0456\u0433", "search.result.other": "\u0417\u043d\u0430\u0439\u0434\u0435\u043d\u043e # \u0437\u0431\u0456\u0433\u0456\u0432", "search.result.placeholder": "\u0420\u043e\u0437\u043f\u043e\u0447\u043d\u0456\u0442\u044c \u043f\u0438\u0441\u0430\u0442\u0438 \u0434\u043b\u044f \u043f\u043e\u0448\u0443\u043a\u0443", "search.result.term.missing": "\u041d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e \u0437\u0430\u043f\u0438\u0442\u0443", "select.version": "\u041e\u0431\u0440\u0430\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u044e"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
