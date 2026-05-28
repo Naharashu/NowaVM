@@ -5,13 +5,19 @@
 #include <cmath>
 #include <cstdint>
 
-extern "C" void print(uint64_t reg);
+extern "C" void print(uint64_t reg) {
+    printf("%llu\n", (unsigned long long)reg);
+}
 
-void print(uint64_t reg) {
-    std::cout << reg << '\n';
+extern "C" uint64_t input() {
+    uint64_t x;
+    std::cin >> x;
+    return x;
 }
 
 void NowaVM::run(uint32_t ip) {
+    code.reset();
+    code.init(rt.environment(), rt.cpu_features());
     StringLogger logger;
     code.set_logger(&logger);
     pc = ip;
@@ -576,10 +582,27 @@ void NowaVM::run(uint32_t ip) {
         }
         case PRINT_REG: {
             uint8_t r = FETCH;
-            a.mov(x86::regs::r8, x86::regs::rdi);
-            a.mov(x86::regs::rdi, x86::qword_ptr(x86::regs::r8, r*8));
-            a.call(print);
-            a.mov(x86::regs::rdi, x86::regs::r8);
+            a.push(x86::regs::rdi);
+            a.mov(x86::regs::rdi,
+                x86::qword_ptr(x86::regs::rdi, r * 8));
+
+            a.mov(x86::regs::rax, (uint64_t)(void*)print);
+            a.call(x86::regs::rax);
+
+
+            a.pop(x86::regs::rdi);;
+            break;
+        }
+        case INPUT_REG: {
+            uint8_t r = FETCH;
+            a.push(x86::regs::rdi);
+            a.mov(x86::regs::rdi,
+                x86::qword_ptr(x86::regs::rdi, r * 8));
+
+            a.mov(x86::regs::rax, (uint64_t)(void*)input);
+            a.call(x86::regs::rax);
+            a.pop(x86::regs::rdi);
+            a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
             break;
         }
         case HLT:
@@ -598,7 +621,9 @@ void NowaVM::run(uint32_t ip) {
         }
         }
     }
+    a.finalize();
     if (this->verbose) std::cout << logger.data();
+    code.set_logger(nullptr);
 }
 
 int NowaVM::interpret(const uint32_t &ip) {

@@ -49,6 +49,7 @@
 #define LDMX 0x2C
 #define LDZERO 0x2D
 #define PRINT_REG 0x2E
+#define INPUT_REG 0x2F
 #define HLT 0xFF
 
 inline void replaceSubstring(std::string& text, const std::string &a,  const std::string& b) {

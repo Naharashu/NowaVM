@@ -1,3 +1,3 @@
-ld r0 12
-print_reg
+input_reg r0
+print_reg r0
 hlt

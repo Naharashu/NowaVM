@@ -120,7 +120,9 @@ class assembly {
     }
     token& peek() {
         if(indx<lexed.size()) return lexed[indx];
-        else return lexed.back();
+        else {
+            throw assembly_error("[Error - assembly]: out of range\n");
+        }
     }
     public:
     bool opt=false;

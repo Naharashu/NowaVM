@@ -50,6 +50,7 @@ std::unordered_map<std::string, std::string> opcodes = {
     {"ldmx", "0x2C"},
     {"ldzero", "0x2D"},
     {"print_reg", "0x2E"},
+    {"input_reg", "0x2F"},
     /*
     {"ADD", "1"},
     {"ADD", "1"},
@@ -62,7 +63,7 @@ std::unordered_map<std::string, std::string> opcodes = {
 
 bool lexer::is_opcode(const std::string &id)
 {
-    return (opcodes[id] != "");
+    return opcodes.contains(id);
 }
 std::string lexer::preprocessor(const std::string &fname)
 {
@@ -232,7 +233,7 @@ void lexer::collect_labels()
             if (!id.empty() && id.back() == ':')
             {
                 id.pop_back();
-                labels[id] = address;
+                labels.insert_or_assign(id, address);
             }
             else if (is_opcode(id))
             {
@@ -325,7 +326,7 @@ void lexer::lex()
             std::string opcode = opcodes[id];
             if (defined.contains(id))
             {
-                lexed.emplace_back(token{INT, l, c, defined[id], addr});
+                lexed.emplace_back(token{INT, l, c, defined.at(id), addr});
                 addr += 8;
                 continue;
             }
@@ -401,7 +402,7 @@ void assembly::analyze()
         } //else if(c.t==ID&&n.t==REGN&&ah.t==ID)
         else if (c.val == "0xFF" && n.t != EOF_)
         {
-            lexed[i + 1] = {EOF_};
+            lexed[i + 1] = token{EOF_, 0, 0, "end", i+1};
             break;
         }
         else if (c.val == "0x0D" && n.t == LABEL)
@@ -413,8 +414,8 @@ void assembly::analyze()
             auto x = labels.find(n.val);
             if (x != labels.end() && ah.address == x->second)
             {
-                lexed[i] = {EMPTY};
-                lexed[i + 1] = {EMPTY};
+                lexed[i] = {EMPTY, 0, 0, "null", 0};
+                lexed[i + 1] = {EMPTY, 0, 0, "null", 0};
             }
         }
         else if (c.val == "0x01" && (n.t == REGN && register_usage[std::stoull(n.val)] == 1))
@@ -422,15 +423,15 @@ void assembly::analyze()
             // ld r0 42
             // ->
             // noop (never used)
-            lexed[i] = {EMPTY};
-            lexed[i + 1] = {EMPTY};
-            lexed[i + 2] = {EMPTY};
+            lexed[i] = {EMPTY, 0, 0, "null", 0};
+            lexed[i + 1] = {EMPTY, 0, 0, "null", 0};
+            lexed[i + 2] = {EMPTY, 0, 0, "null", 0};
         }
         else if ((c.val == "0x08" || c.val == "0x03") && (n.t == REGN && ah.t == REGN) && n.val == ah.val)
         {
             lexed[i].val = "0x2D";
             std::cout << lexed[i].val << ' ';
-            lexed[i + 2] = {EMPTY};
+            lexed[i + 2] = {EMPTY, 0, 0, "null", 0};
         }
         i += 2;
     }
@@ -469,7 +470,7 @@ std::vector<uint8_t> assembly::compile()
         {
             std::string id = peek().val;
             f << "RELOC " << compiled.size() << ' ' << id << '\n';
-            uint64_t val = labels[id];
+            uint64_t val = labels.at(id);
             consume();
             std::array<uint8_t, 8> bytes = slice64(val);
             for (auto &x : bytes)

@@ -58,7 +58,6 @@ class NowaVM {
 
 
     NowaVM() {
-        code.init(rt.environment(), rt.cpu_features()); 
         for(uint64_t &x : reg) x = 0; 
         for(uint8_t &y : memory) y = 0;
     }
