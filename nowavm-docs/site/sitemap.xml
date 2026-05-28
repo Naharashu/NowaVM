@@ -1,3 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>None./</loc>
+        <lastmod>2026-05-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="None"/>
+        <xhtml:link rel="alternate" hreflang="uk" href="Noneuk/"/>
+    </url>
+    <url>
+        <loc>Noneassembly/isa/</loc>
+        <lastmod>2026-05-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneassembly/isa/"/>
+        <xhtml:link rel="alternate" hreflang="uk" href="Noneuk/assembly/isa/"/>
+    </url>
+    <url>
+        <loc>Nonelinker/linker/</loc>
+        <lastmod>2026-05-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonelinker/linker/"/>
+        <xhtml:link rel="alternate" hreflang="uk" href="Noneuk/linker/linker/"/>
+    </url>
+    <url>
+        <loc>Nonevm/vm/</loc>
+        <lastmod>2026-05-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonevm/vm/"/>
+        <xhtml:link rel="alternate" hreflang="uk" href="Noneuk/vm/vm/"/>
+    </url>
+    <url>
+        <loc>Noneuk/</loc>
+        <lastmod>2026-05-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="uk" href="Noneuk/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="None"/>
+    </url>
+    <url>
+        <loc>Noneuk/assembly/isa/</loc>
+        <lastmod>2026-05-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="uk" href="Noneuk/assembly/isa/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneassembly/isa/"/>
+    </url>
+    <url>
+        <loc>Noneuk/linker/linker/</loc>
+        <lastmod>2026-05-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="uk" href="Noneuk/linker/linker/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonelinker/linker/"/>
+    </url>
+    <url>
+        <loc>Noneuk/vm/vm/</loc>
+        <lastmod>2026-05-28</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="uk" href="Noneuk/vm/vm/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Nonevm/vm/"/>
+    </url>
 </urlset>

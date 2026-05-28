@@ -1,30 +1,52 @@
 site_name: NowaVM Docs
-
 site_description: "Official documentation for NowaVM"
 repo_url: "https://github.com/Naharashu/NowaVM"
 
 theme:
-  name: readthedocs
-  user_color_mode_toggle: true
-  highlightjs: true
-  highlight_css: atom-one-dark.min.css
-  hljs_languages:
-    - bash
-    - shell
-    - plaintext
+  name: material
+  palette:
+    scheme: slate
+    primary: deep purple
+    accent: pink
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: uk
+          name: Українська
+          build: true
+
+
+extra:
+  alternate:
+    - name: English
+      link: /en/
+      lang: en
+    - name: Українська
+      link: /uk/
+      lang: uk
 
 markdown_extensions:
-  - fenced_code
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_style: dracula  
+  - pymdownx.superfences      
 
 nav:
   - Home: index.md
-
   - Assembly:
       - ISA: assembly/isa.md
       - Registers: assembly/registers.md
-
   - VM:
       - VM: vm/vm.md
-
   - Linker:
       - Linker: linker/linker.md
+
