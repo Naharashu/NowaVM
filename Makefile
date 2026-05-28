@@ -44,8 +44,8 @@ debug: $(CXX_OBJECTS)
 install:
 	mkdir -p ~/.local/bin/include_nowavm/
 	cp entry0.asm ~/.local/bin/include_nowavm/entry0.asm
-	cp nanovm ~/.local/bin/nowavm
-	cp nanovm ~/.local/bin/nwld
+	cp nowavm ~/.local/bin/nowavm
+	cp nowavm ~/.local/bin/nwld
 
 clean:
 	rm -f ./nowavm ./nwld

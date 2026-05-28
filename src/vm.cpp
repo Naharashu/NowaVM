@@ -11,7 +11,7 @@ void print(uint64_t reg) {
     std::cout << reg << '\n';
 }
 
-void NanoVM::run(uint32_t ip) {
+void NowaVM::run(uint32_t ip) {
     StringLogger logger;
     code.set_logger(&logger);
     pc = ip;
@@ -601,7 +601,7 @@ void NanoVM::run(uint32_t ip) {
     if (this->verbose) std::cout << logger.data();
 }
 
-int NanoVM::interpret(const uint32_t &ip) {
+int NowaVM::interpret(const uint32_t &ip) {
     uint8_t i = 0;
     this->pc = ip;
     while(pc < prog_size) {
@@ -1016,13 +1016,13 @@ int NanoVM::interpret(const uint32_t &ip) {
 }
 
 
-bool NanoVM::qual_bytecode(uint64_t start, uint64_t end, const uint8_t bytecode[])
+bool NowaVM::qual_bytecode(uint64_t start, uint64_t end, const uint8_t bytecode[])
 {
     if (end >= prog_size)
         return false;
     return std::memcmp(this->memory.data() + start, bytecode, end - start) == 0;
 }
-void NanoVM::analyzer(std::vector<uint8_t> &prog)
+void NowaVM::analyzer(std::vector<uint8_t> &prog)
 {
     uint64_t size = prog.size();
     for (uint64_t i = 0; i < size;)
@@ -1138,7 +1138,7 @@ void NanoVM::analyzer(std::vector<uint8_t> &prog)
             i++;
     }
 }
-int NanoVM::res()
+int NowaVM::res()
 {
     Func fn;
     Error err = rt.add(&fn, &code);
@@ -1146,7 +1146,7 @@ int NanoVM::res()
     rt.release(fn);
     return res;
 }
-void NanoVM::load_program(const std::vector<uint8_t> &prog)
+void NowaVM::load_program(const std::vector<uint8_t> &prog)
 {
     for (uint64_t i = 0; i < prog.size(); i++)
     {
@@ -1156,9 +1156,9 @@ void NanoVM::load_program(const std::vector<uint8_t> &prog)
     }
     prog_size = prog.size();
 }
-void NanoVM::register_dump()
+void NowaVM::register_dump()
 {
-    std::cout << "NanoVM register dump(Zero-value registers not printed):\n";
+    std::cout << "NowaVM register dump(Zero-value registers not printed):\n";
     for (uint16_t i = 0; i < 256; i++)
     {
         auto val = this->reg[i];

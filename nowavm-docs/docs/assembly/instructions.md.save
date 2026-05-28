@@ -1,4 +1,4 @@
-# NanoVM ISA
+# NowaVM ISA
 
 ---
 

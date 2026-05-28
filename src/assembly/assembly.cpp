@@ -70,7 +70,7 @@ std::string lexer::preprocessor(const std::string &fname)
     std::string line;
     if (use_entry0)
     {
-        std::ifstream entry0(std::string{std::getenv("HOME")} + "/.local/bin/include_nanovm/entry0.asm");
+        std::ifstream entry0(std::string{std::getenv("HOME")} + "/.local/bin/include_nowavm/entry0.asm");
         while (std::getline(entry0, line))
         {
             res += line + '\n';

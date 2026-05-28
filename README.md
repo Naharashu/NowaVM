@@ -1,6 +1,6 @@
 # NowaVM
  
-NanoVM is small, jit vm that executed bytecode. 
+NowaVM is small, jit vm that executed bytecode. 
 
 Current Version: 0.8 dev
 

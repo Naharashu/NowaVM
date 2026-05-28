@@ -29,7 +29,7 @@
 using namespace asmjit;
 
 
-class NanoVM {
+class NowaVM {
     public:
     typedef int (*Func)(void* regs, void* mem, void* stack, void* callstack);
 
@@ -57,7 +57,7 @@ class NanoVM {
     bool warning_rt=false;
 
 
-    NanoVM() {
+    NowaVM() {
         code.init(rt.environment(), rt.cpu_features()); 
         for(uint64_t &x : reg) x = 0; 
         for(uint8_t &y : memory) y = 0;
@@ -103,7 +103,7 @@ class NanoVM {
 
 
 
-    ~NanoVM() {
+    ~NowaVM() {
         
     }
 };

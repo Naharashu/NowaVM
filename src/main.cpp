@@ -25,24 +25,24 @@ int main(int argc, char** argv) {
     bool interpret_this=true;
     #endif
     if(argc<2) {
-        std::cout << "Usage: nanovm [OPTIONS]\nType nanovm --help for more info\n";
+        std::cout << "Usage: nowavm [OPTIONS]\nType nowavm --help for more info\n";
         return 0;
     }
     if(strcmp(argv[1], "-v")==0) {
-        std::cout << "NanoVM V0.7\n";
+        std::cout << "NowaVM V0.7\n";
         return 0;
     }
     if(strcmp(argv[1], "--help")==0) {
         if(argc>2&&strcmp(argv[2], "asm")==0) {
-            std::cout << "NanoVM have own assembler than turns code like 'LD 0 12' into bytecode '0x01 0x0C 0x00 0x00 ... 0x00.\n";
+            std::cout << "NowaVM have own assembler than turns code like 'LD 0 12' into bytecode '0x01 0x0C 0x00 0x00 ... 0x00.\n";
             std::cout << "-c compiles .asm code of vm into bytecode and writes result into binary file, you can run immetiatly with -e\n";
             std::cout << "-o - sets name for output binary file name, by default name is 'out.bin'\n";
             std::cout << "-fno-entry0 - does not injects entry0.asm(jmp _start) into main file\n";
             return 0;
         }
-        std::cout << "NanoVM [OPTIONS] <input file>:\n"
+        std::cout << "NowaVM [OPTIONS] <input file>:\n"
         << "-r - registry dump after execution\n" 
-        << "-v - version of NanoVM\n" 
+        << "-v - version of NowaVM\n" 
         << "-V - prints generated x64 code\n"
         << "-Wrt - prints VM runtime warnings\n"
         << "-e [filename] - execute bytecode\n"
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
         << "-interpret - use interpreter for execution\n";
         return 0;
     }
-    NanoVM vm{};
+    NowaVM vm{};
     for(int i=1;i<argc;i++) {
         if(strcmp(argv[i], "-r")==0) regdump=true;
         else if(strcmp(argv[i], "-V")==0) vm.verbose=true;
