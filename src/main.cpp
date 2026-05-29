@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
         return 0;
     }
     if(strcmp(argv[1], "-v")==0) {
-        std::cout << "NowaVM V0.7\n";
+        std::cout << "NowaVM V0.8\n";
         return 0;
     }
     if(strcmp(argv[1], "--help")==0) {
@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
     }
     std::vector<uint8_t> res;
     try {
-        res = as.compile();
+        if(compiling) res = as.compile();
     } catch(const assembly_error &e) {
         std::cerr << e.what();
         return 1;

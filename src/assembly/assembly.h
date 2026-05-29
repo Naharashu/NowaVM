@@ -28,6 +28,7 @@ class assembly_error : public std::exception {
     const char * what() const noexcept override {
         return err.c_str();
     }
+
 };
 
 enum tok_type : uint8_t

@@ -31,13 +31,14 @@ void NowaVM::run(uint32_t ip) {
     }
 
     a.mov(x86::r10, x86::rcx);
+
+    a.push(x86::regs::r12);
+    a.push(x86::regs::r15);
     a.xor_(x86::r12, x86::r12);
 
     a.xor_(x86::r11, x86::r11);
     a.xor_(x86::regs::rcx, x86::regs::rcx);
 
-    a.push(x86::regs::r12);
-    a.push(x86::regs::r15);
     while (pc < prog_size)
     {
         a.bind(labels[pc]);
