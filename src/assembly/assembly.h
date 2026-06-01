@@ -70,6 +70,7 @@ public:
     std::string header;
     bool use_entry0;
     explicit lexer(std::string& fname_, const bool &entr0) : filename(fname_), use_entry0(entr0) {
+        this->init();
         code = preprocessor(fname_);
     };
 
@@ -90,6 +91,25 @@ public:
     std::unordered_set<std::string> def_set; 
     std::vector<bool> active_stack; 
     bool active = true;
+    void init() {
+        #if defined(__amd64__)
+            defined.insert_or_assign("__X86_64__", "1");
+        #elif defined(__i386__)
+            defined.insert_or_assign("__I386__", "1");
+        #elif defined(__aarch64__)
+            defined.insert_or_assign("__AARCH64__", "1");
+        #endif
+
+        #if defined(_WIN32)
+            defined.insert_or_assign("__WINDOWS__", "1");
+        #elif defined(__linux__)
+            defined.insert_or_assign("__LINUX__", "1");
+        #elif defined(__APPLE__)
+            defined.insert_or_assign("__APPLE__", "1");
+        #endif
+
+        defined.insert_or_assign("__NVVM_VERSION__", "1.0");
+    }
     std::string preprocessor(const std::string &fname);
 
     void collect_labels();
@@ -130,6 +150,7 @@ class assembly {
     bool use_entry0_as=true;
     std::string file = "";
     void analyze();
+    bool no_sym=false;
 
     void init(std::string &filename) {
         file = filename;

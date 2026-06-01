@@ -65,6 +65,8 @@ bool lexer::is_opcode(const std::string &id)
 {
     return opcodes.contains(id);
 }
+
+
 std::string lexer::preprocessor(const std::string &fname)
 {
     std::string res;
@@ -97,6 +99,18 @@ std::string lexer::preprocessor(const std::string &fname)
 
         s = s.substr(start, end - start + 1);
     };
+
+    auto split = [](const std::string &s)
+    {
+        std::vector<std::string> res;
+        std::istringstream iss(s);
+        std::string word;
+        while (iss >> word)
+        {
+            res.push_back(word);
+        }
+        return res;
+    };
     while (std::getline(f, line))
     {
         if (auto pos = line.find(';'); pos != std::string::npos)
@@ -114,6 +128,32 @@ std::string lexer::preprocessor(const std::string &fname)
             trim(name);
             active_stack.push_back(active);
             active = active && !defined.contains(name);
+        }
+        else if (line.rfind("#ifeq", 0) == 0)
+        {
+            std::string str = line.substr(5);
+            auto parts = split(str);
+            bool eq = false;
+            if (parts.size() >= 2) {
+                std::string val1 = defined.contains(parts[0]) ? defined[parts[0]] : parts[0];
+                std::string val2 = defined.contains(parts[1]) ? defined[parts[1]] : parts[1];
+                eq = (val1 == val2);
+            }
+            active_stack.push_back(active);
+            active = active && eq;
+        }
+        else if (line.rfind("#ifneq", 0) == 0)
+        {
+            std::string str = line.substr(6);
+            auto parts = split(str);
+            bool eq = false;
+            if (parts.size() >= 2) {
+                std::string val1 = defined.contains(parts[0]) ? defined[parts[0]] : parts[0];
+                std::string val2 = defined.contains(parts[1]) ? defined[parts[1]] : parts[1];
+                eq = (val1 != val2);
+            }
+            active_stack.push_back(active);
+            active = active && eq;
         }
         else if (line.rfind("#else", 0) == 0)
         {
@@ -142,13 +182,13 @@ std::string lexer::preprocessor(const std::string &fname)
             {
                 std::string def = line.substr(7);
                 std::string name;
-                std::string number;
+                std::string val;
                 bool name_seen = false;
                 bool val_seen = false;
                 for (uint32_t i = 0; i < def.size();)
                 {
                     uint8_t c = def[i];
-                    if (is_letter(c) || c == '_')
+                    if ((is_letter(c) || c == '_'))
                     {
                         while (i < def.size() && (is_letter(def[i]) || is_int(def[i]) || def[i] == '_'))
                         {
@@ -164,13 +204,13 @@ std::string lexer::preprocessor(const std::string &fname)
                             throw assembly_error("[Error - preprocessor]: expected NAME for macro(e.g #define ERROR "
                                                  "1), but got immediate\n");
                         }
-                        while ((i < def.size() && is_int(def[i])))
+                        while (i < def.size())
                         {
-                            number.push_back(def[i]);
+                            val.push_back(def[i]);
                             i++;
                         }
                         val_seen = true;
-                        defined[name] = number;
+                        defined[name] = val;
                         break;
                     }
                     else
@@ -326,8 +366,20 @@ void lexer::lex()
             std::string opcode = opcodes[id];
             if (defined.contains(id))
             {
-                lexed.emplace_back(token{INT, l, c, defined.at(id), addr});
-                addr += 8;
+                std::string val = defined.at(id);
+                if(std::all_of(val.begin() + 1, val.end(), ::isdigit)) {
+                    lexed.emplace_back(token{INT, l, c, defined.at(val), addr});
+                    addr += 8;
+                } else if((val[0] == 'R' || val[0] == 'r') && std::all_of(val.begin() + 1, val.end(), ::isdigit)) {
+                    lexed.emplace_back(token{REGN, l, c, val.substr(1), addr});
+                    addr++;
+                } else if(is_opcode(id)) {
+                    lexed.emplace_back(token{ID, l, c, opcodes[val], addr});
+                    addr++;
+                } else {
+                    lexed.emplace_back(token{ID, l, c, val, addr});
+                    addr++;
+                }
                 continue;
             }
             if (opcode == "" && !labels.contains(id))
@@ -469,7 +521,7 @@ std::vector<uint8_t> assembly::compile()
         else if (peek().t == LABEL)
         {
             std::string id = peek().val;
-            f << "RELOC " << compiled.size() << ' ' << id << '\n';
+            if(!no_sym) f << "RELOC " << compiled.size() << ' ' << id << '\n';
             uint64_t val = labels.at(id);
             consume();
             std::array<uint8_t, 8> bytes = slice64(val);
@@ -495,7 +547,7 @@ std::vector<uint8_t> assembly::compile()
     }
     for (auto &x : labels)
     {
-        if (!extern_labels.contains(x.first))
+        if (!extern_labels.contains(x.first)&&!no_sym)
             f << "EXPORT " << x.first << ' ' << x.second << '\n';
     }
     f.close();

@@ -650,6 +650,8 @@ int NowaVM::interpret(const uint32_t &ip) {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 this->reg[r] =(this->reg[r]+this->reg[r2]);
+                __int128_t res = (this->reg[r]+this->reg[r2]);
+                if(res>UINT64_MAX) cf = true;
                 break;
             }
             case SUB:
@@ -657,6 +659,8 @@ int NowaVM::interpret(const uint32_t &ip) {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 this->reg[r] =(this->reg[r]-this->reg[r2]);
+                __int128_t res = (this->reg[r]-this->reg[r2]);
+                if(res<0) cf = true;
                 break;
             }
             case MUL:
@@ -739,8 +743,10 @@ int NowaVM::interpret(const uint32_t &ip) {
             {
                 uint64_t addr = fetch64(pc);
 
-                if (addr < prog_size) pc = addr;
-                if(verbose) std::cout << "[Info]: jumped to address " << addr << '\n';
+                if (addr < prog_size) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped to address " << addr << '\n';
+                }
                 break;
             }
             case CMP:
@@ -752,35 +758,49 @@ int NowaVM::interpret(const uint32_t &ip) {
                 zf = a==b;
                 less = a<b;
                 bigger = a>b;
+                __int128_t res = (this->reg[r]-this->reg[r2]);
+                if(res<0) cf = true;
                 break;
             }
             case JZ:
             {
                 uint64_t addr = fetch64(pc);
 
-                if (addr < prog_size && zf) pc = addr;
-                if(verbose) std::cout << "[Info]: jumped if zf to address " << addr << '\n';
+                if(addr < prog_size && zf) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped if zero flag to address " << addr << '\n';
+                }  
                 break;
             }
             case JNZ:
             {
                 uint64_t addr = fetch64(pc);
 
-                if (addr < prog_size && !zf) pc = addr;
-                if(verbose) std::cout << "[Info]: jumped if not zf to address " << addr << '\n';
+                if(addr < prog_size && !zf) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped if not zero flag to address " << addr << '\n';
+                }  
                 break;
             }
             case JC:
             {
-                //uint64_t addr = fetch64(pc);
+                uint64_t addr = fetch64(pc);
 
-                return CANNOT_INTERPRET_THIS_OPCODE;
+                if(addr < prog_size && cf) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped if carry to address " << addr << '\n';
+                }  
+                break;
             }
             case JNC:
             {
-                //uint64_t addr = fetch64(pc);
+                uint64_t addr = fetch64(pc);
 
-                return CANNOT_INTERPRET_THIS_OPCODE;
+                if(addr < prog_size && !cf) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped if not carry to address " << addr << '\n';
+                }  
+                break;
             }
             case STORE:
             {
@@ -813,32 +833,40 @@ int NowaVM::interpret(const uint32_t &ip) {
             {
                 uint64_t addr = fetch64(pc);
 
-                if (addr < prog_size && less) pc = addr;
-                if(verbose) std::cout << "[Info]: jumped if less to address " << addr << '\n';
+                if(addr < prog_size && less) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped if less to address " << addr << '\n';
+                }  
                 break;
             }
             case JLE:
             {
                 uint64_t addr = fetch64(pc);
 
-                if (addr < prog_size && less && zf) pc = addr;
-                if(verbose) std::cout << "[Info]: jumped if less and zf to address " << addr << '\n';
+                if(addr < prog_size && less && zf) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped if less and zero flag to address " << addr << '\n';
+                }  
                 break;
             }
             case JB:
             {
                 uint64_t addr = fetch64(pc);
 
-                if (addr < prog_size && bigger) pc = addr;
-                if(verbose) std::cout << "[Info]: jumped if bigger to address " << addr << '\n';
+                if(addr < prog_size && bigger) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped if bigger to address " << addr << '\n';
+                }  
                 break;
             }
             case JBE:
             {
                 uint64_t addr = fetch64(pc);
 
-                if (addr < prog_size && bigger && zf) pc = addr;
-                if(verbose) std::cout << "[Info]: jumped if bigger and zf to address " << addr << '\n';
+                if(addr < prog_size && bigger && zf) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped if bigger and zero flag to address " << addr << '\n';
+                }  
                 break;
             }
             case JMP_REGV:
@@ -846,7 +874,10 @@ int NowaVM::interpret(const uint32_t &ip) {
                 uint8_t r = FETCH;
                 uint64_t addr = this->reg[r];
 
-                if (addr < prog_size && zf) pc = addr;
+                if (addr < prog_size && zf) {
+                    pc = addr;
+                    if(verbose) std::cout << "[Info]: jumped to address " << addr << " from r" << r << '\n';
+                }
                 break;
             }
             case PUSH:

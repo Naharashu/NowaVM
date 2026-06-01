@@ -19,7 +19,8 @@ int main(int argc, char** argv) {
     std::string output_file_name="out.bin";
     bool opt = false;
     bool entry0 = true;
-    #ifndef __aarch64__
+    bool sym = false;
+    #ifdef __x86_64__
     bool interpret_this=false;
     #else
     bool interpret_this=true;
@@ -29,15 +30,17 @@ int main(int argc, char** argv) {
         return 0;
     }
     if(strcmp(argv[1], "-v")==0) {
-        std::cout << "NowaVM V0.8\n";
+        std::cout << "NowaVM V1.0\n";
+        std::cout << "By Naharashu with love\n";
         return 0;
     }
     if(strcmp(argv[1], "--help")==0) {
         if(argc>2&&strcmp(argv[2], "asm")==0) {
-            std::cout << "NowaVM have own assembler than turns code like 'LD 0 12' into bytecode '0x01 0x0C 0x00 0x00 ... 0x00.\n";
+            std::cout << "NowaVM have own assembler than turns code like 'ld r0 12' into bytecode '0x01 0x00 0x0C 0x00 0x00 ... 0x00.\n";
             std::cout << "-c compiles .asm code of vm into bytecode and writes result into binary file, you can run immetiatly with -e\n";
             std::cout << "-o - sets name for output binary file name, by default name is 'out.bin'\n";
             std::cout << "-fno-entry0 - does not injects entry0.asm(jmp _start) into main file\n";
+            std::cout << "-fno-sym - does not generates .sym file\n";
             return 0;
         }
         std::cout << "NowaVM [OPTIONS] <input file>:\n"
@@ -49,7 +52,8 @@ int main(int argc, char** argv) {
         << "-o - sets name for output binary file\n"
         << "-opt - optimize bytecode\n"
         << "-fno-entry0 - not include entry0.asm\n"
-        << "-interpret - use interpreter for execution\n";
+        << "-interpret - use interpreter for execution\n"
+        << "-fno-sym - doesnt generates .sym file\n";
         return 0;
     }
     NowaVM vm{};
@@ -81,6 +85,9 @@ int main(int argc, char** argv) {
         else if(strcmp(argv[i], "-interpret")==0) {
             interpret_this = true;
         }
+        else if(strcmp(argv[i], "-fno-sym")==0) {
+            sym = true;
+        }
         else if(!compiling&&argv[i][0]!='-') {
             filename=argv[i];
             compiling=true;
@@ -97,6 +104,7 @@ int main(int argc, char** argv) {
 
     assembly as;
     as.opt=opt;
+    as.no_sym=sym;
     as.use_entry0_as=entry0;
     try {
         if(compiling) as.init(filename);

@@ -1,3 +1,0 @@
-RELOC 27 _main
-EXPORT _main 29
-EXPORT _start 0

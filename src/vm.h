@@ -47,6 +47,7 @@ class NowaVM {
     bool zf = false;
     bool less = false;
     bool bigger = false;
+    bool cf = false;
     // ----------------
 
     uint64_t reg[256];
