@@ -492,6 +492,8 @@ std::vector<uint8_t> assembly::compile()
 {
     std::string linker_sym_name = file.substr(0, file.size() - 3) + "sym";
     std::ofstream f(linker_sym_name);
+    std::string cmd = "rm -f " + linker_sym_name;
+    if(no_sym) system(cmd.c_str());
     std::vector<uint8_t> compiled;
     analyze();
     while (indx < lexed.size() && peek().t != EOF_)
