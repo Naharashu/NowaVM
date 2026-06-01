@@ -44,7 +44,6 @@ nav:
   - Home: index.md
   - Assembly:
       - ISA: assembly/isa.md
-      - Registers: assembly/registers.md
   - VM:
       - VM: vm/vm.md
   - Linker:
