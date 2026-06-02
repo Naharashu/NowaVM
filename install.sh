@@ -1,10 +1,15 @@
+if [ "$PREFIX" = "/data/data/com.termux/files/usr" ]; then
+	echo "Running in Termux..."
+	chmod +x ./termux.sh
+	exec ./termux.sh
+fi
 source /etc/os-release
-if [ "$ID" = "ubuntu" || "$ID" = "debian" ]; then
-	apt install git asmjit clang make
+if [ "$ID" = "ubuntu" ] || [ "$ID" = "debian" ]; then
+	sudo apt -y install git asmjit clang make
 elif [ "$ID" = "arch" ]; then
 	yay -S git asmjit clang make
 elif [ "$ID" = "fedora" ]; then
-	dnf install git asmjit clang make
+	sudo dnf -y install git asmjit clang make
 else
 	echo "Unknown linux distro, stopping..."
 	exit 1
