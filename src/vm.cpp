@@ -5,6 +5,22 @@
 #include <cmath>
 #include <cstdint>
 
+float fadd(float a, float b) {
+    return a + b;
+}
+
+float fsub(float a, float b) {
+    return a - b;
+}
+
+float fmul(float a, float b) {
+    return a * b;
+}
+
+float fdiv(float a, float b) {
+    return a / b;
+}
+
 extern "C" void print(uint64_t reg) {
     printf("%llu\n", (unsigned long long)reg);
 }
