@@ -23,7 +23,7 @@ endif
 all: main
 
 linker:
-	$(CXX) -O2 -g1 -march=x86-64-v2 -pipe -std=c++20 -Wall src/linker/linker.cpp -o nwld
+	$(CXX) -O2 -g1 -march=x86-64 -pipe -std=c++20 -Wall src/linker/linker.cpp -o nwld
 
 main: $(CXX_OBJECTS)
 	$(CXX) $(CXX_FLAGS) $(CXX_OBJECTS) -lasmjit  -o nowavm
