@@ -2,7 +2,7 @@
  
 NowaVM is small, jit vm that executed bytecode. 
 
-Current Version: 0.8
+Current Version: 1.0
 
 Status: InDev
 
