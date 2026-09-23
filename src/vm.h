@@ -85,6 +85,12 @@ class NowaVM {
         return res;
     }
 
+    inline void write64(uint64_t i, uint64_t n) {
+        for(int a=0;a<8;a++) {
+            this->memory[i++] = n << (8*a);
+        }
+    }
+
 
     void run(uint32_t ip);
 

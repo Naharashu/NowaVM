@@ -2,6 +2,8 @@
 #define COMMON_H
 
 #include <string>
+
+// Basic Pipiline
 #define NOOP 0x0
 #define LD 0x01
 #define ADD 0x02 
@@ -50,6 +52,41 @@
 #define LDZERO 0x2D
 #define PRINT_REG 0x2E
 #define INPUT_REG 0x2F
+#define NEG 0x30
+#define INC 0x31
+#define DEC 0x32
+
+// SIMD 128 bit ( NowaVM VEXT-1)
+
+#define VADD 0x33
+#define VSUB 0x34
+#define VDIV 0x35
+#define VMUL 0x36
+#define VCMP 0x37
+#define VSHL 0x38
+#define VSHR 0x39
+#define VXOR 0x3A
+#define VAND 0x3B
+#define VOR 0x3C
+#define VSWAP 0x3E
+#define VCOPY 0x3D
+#define VLD64 0x3F
+#define VLD32 0x40
+#define VLD16 0x41
+#define VLD8 0x42
+#define VLDMX 0x43
+
+// Special
+// EXTENSION 0xFE 1 -> VEXT-2
+
+// VEXT-2
+#define VEXT_2_POPCNT 0x01
+#define VEXT_2_CLZ 0x02
+#define VEXT_2_ARX 0x03
+#define VEXT_2_LDM 0x04
+
+#define EXTENSION 0xFE
+
 #define HLT 0xFF
 
 inline void replaceSubstring(std::string& text, const std::string &a,  const std::string& b) {
