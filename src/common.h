@@ -58,28 +58,49 @@
 
 // SIMD 128 bit ( NowaVM VEXT-1)
 
-#define VADD 0x33
-#define VSUB 0x34
-#define VDIV 0x35
-#define VMUL 0x36
+#define VADDQW 0x33
+#define VSUBQW 0x34
+#define VDIVQW 0x35
+#define VMULQW 0x36
 #define VCMP 0x37
-#define VSHL 0x38
-#define VSHR 0x39
+#define VSHLQW 0x38
+#define VSHRQW 0x39
 #define VXOR 0x3A
 #define VAND 0x3B
 #define VOR 0x3C
 #define VSWAP 0x3E
 #define VCOPY 0x3D
-#define VLD64 0x3F
-#define VLD32 0x40
-#define VLD16 0x41
-#define VLD8 0x42
-#define VLDMX 0x43
+#define VLDQW 0x3F
+#define VLDDW 0x40
+#define VLDW 0x41
+#define VLD 0x42
+#define VLDSP 0x43
+#define VLDDP 0x44
+#define VLDMXQW 0x45
+#define VLDLQW 0x46 // VLDQW + line of QW(0 or 1)
+#define VNOT 0x47
+#define VADDDW 0x48
+#define VSUBDW 0x49
+#define VDIVDW 0x4A
+#define VMULDW 0x4B
+#define VADDW 0x4C
+#define VSUBW 0x4D
+#define VDIVW 0x4E
+#define VMULW 0x4F
+#define VADD 0x50
+#define VSUB 0x51
+#define VDIV 0x52
+#define VMUL 0x53
+#define VADDSP 0x54
+#define VSUBSP 0x55
+#define VDIVSP 0x56
+#define VMULSP 0x57
+#define VADDDP 0x58
+#define VSUBDP 0x59
+#define VDIVDP 0x5A
+#define VMULDP 0x5B
+#define VSTREGQW 0x5C
 
-// Special
-// EXTENSION 0xFE 1 -> VEXT-2
-
-// VEXT-2
 #define VEXT_2_POPCNT 0x01
 #define VEXT_2_CLZ 0x02
 #define VEXT_2_ARX 0x03

@@ -29,6 +29,34 @@
 using namespace asmjit;
 
 
+#include <cstdint>
+#include <cstring>
+#include <algorithm>
+
+struct vecreg {
+    union {
+        float as_f32[4];
+        double as_f64[2];
+        int64_t as_i64[2];
+        int32_t as_i32[4];
+        int16_t as_i16[8];
+        uint8_t as_u8[16];
+    };
+
+    bool operator==(const vecreg& other) const {
+        return std::memcmp(as_u8, other.as_u8, 16) == 0;
+    }
+
+    auto operator<=>(const vecreg& other) const {
+        return std::lexicographical_compare_three_way(
+            as_u8, as_u8 + 16,
+            other.as_u8, other.as_u8 + 16
+        );
+    }
+};
+
+
+
 class NowaVM {
     public:
     typedef int (*Func)(void* regs, void* mem, void* stack, void* callstack);
@@ -51,6 +79,7 @@ class NowaVM {
     // ----------------
 
     uint64_t reg[256];
+    vecreg vreg[16];
     uint64_t pc=0;
     uint64_t prog_size = 0;
     bool verbose=false;
@@ -77,6 +106,22 @@ class NowaVM {
         return res;
     }
 
+    inline uint32_t fetch32(uint64_t &i) {
+        uint32_t res = 0;
+        for(int a=0;a<4;a++) {
+            res |= (uint64_t)(this->memory[i++]) << (8*a);
+        }
+        return res;
+    }
+
+    inline uint64_t fetch16(uint64_t &i) {
+        uint16_t res = 0;
+        for(int a=0;a<2;a++) {
+            res |= (uint64_t)(this->memory[i++]) << (8*a);
+        }
+        return res;
+    }
+
     inline uint64_t into64(uint64_t &i, std::vector<uint8_t> m) {
         uint64_t res = 0;
         for(int a=0;a<8;a++) {
@@ -95,6 +140,8 @@ class NowaVM {
     void run(uint32_t ip);
 
     int interpret(const uint32_t &ip);
+
+    void runExtension_VEXT(const uint32_t &ip);
 
     bool qual_bytecode(uint64_t start, uint64_t end, const uint8_t bytecode[]);
 

@@ -38,6 +38,8 @@ enum tok_type : uint8_t
     SEMI,
     NEWLINE,
     INT,
+    FLOAT,
+    DOUBLE,
     SHORT_INT,
     WORD,
     LONG_INT,
@@ -57,6 +59,8 @@ typedef struct token
     uint16_t c;
     std::string val = "";
     uint64_t address=0;
+    float f;
+    double d;
 } token;
 
 

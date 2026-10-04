@@ -4,20 +4,21 @@
 #include <bit>
 #include <cmath>
 #include <cstdint>
+#include <utility>
 
-float fadd(float a, float b) {
+double add_double(double a, double b) {
     return a + b;
 }
 
-float fsub(float a, float b) {
+double subtract_double(double a, double b) {
     return a - b;
 }
 
-float fmul(float a, float b) {
+double multiply_double(double a, double b) {
     return a * b;
 }
 
-float fdiv(float a, float b) {
+double divide_double(double a, double b) {
     return a / b;
 }
 
@@ -41,8 +42,7 @@ void NowaVM::run(uint32_t ip) {
     x86::Assembler a(&code);
     CpuFeatures features = rt.cpu_features();
     std::vector<Label> labels(prog_size);
-    for (auto &x : labels)
-    {
+    for (auto &x : labels) {
         x = a.new_label();
     }
 
@@ -55,877 +55,800 @@ void NowaVM::run(uint32_t ip) {
     a.xor_(x86::r11, x86::r11);
     a.xor_(x86::regs::rcx, x86::regs::rcx);
 
-    while (pc < prog_size)
-    {
+    while (pc < prog_size) {
         a.bind(labels[pc]);
         i = FETCH;
-        switch (i)
-        {
-        case NOOP:
-            continue;
-            break;
-        case LD:
-        {
-            uint8_t r = FETCH;
-            uint64_t val = fetch64(pc);
+        switch (i) {
+            case NOOP:
+                continue;
+                break;
+            case LD: {
+                uint8_t r = FETCH;
+                uint64_t val = fetch64(pc);
 
-            a.mov(x86::regs::rax, val);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case ADD:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.add(x86::regs::rax, x86::regs::rcx);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case SUB:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.sub(x86::regs::rax, x86::regs::rcx);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case MUL:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.mul(x86::regs::rcx);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case DIV:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.cmp(x86::regs::rcx, 0);
-            Label skip_div = a.new_label();
-            a.jz(skip_div);
-            a.xor_(x86::regs::rdx, x86::regs::rdx);
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.div(x86::regs::rcx);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            a.bind(skip_div);
-            break;
-        }
-        case IMUL:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.imul(x86::regs::rax, x86::regs::rax, x86::regs::rcx);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case IDIV:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.cmp(x86::regs::rcx, 0);
-            Label skip_idiv = a.new_label();
-            a.jz(skip_idiv);
-            a.xor_(x86::regs::rdx, x86::regs::rdx);
-            a.cqo();
-            a.idiv(x86::regs::rcx);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            a.bind(skip_idiv);
-            break;
-        }
-        case XOR_:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.xor_(x86::regs::rax, x86::regs::rcx);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case AND_:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.and_(x86::regs::rax, x86::regs::rcx);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case OR_:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.or_(x86::regs::rax, x86::regs::rcx);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case SHL:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.mov(x86::cl, x86::regs::rcx);
-            a.shl(x86::regs::rax, x86::cl);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case SHR:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.mov(x86::cl, x86::regs::rcx);
-            a.shr(x86::regs::rax, x86::cl);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case JMP:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-                a.jmp(labels[addr]);
-            break;
-        }
-        case CMP:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.cmp(x86::regs::rax, x86::regs::rcx);
-            break;
-        }
-        case JZ:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-                a.jz(labels[addr]);
-            break;
-        }
-        case JNZ:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-                a.jnz(labels[addr]);
-            break;
-        }
-        case JC:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-                a.jc(labels[addr]);
-            break;
-        }
-        case JNC:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-                a.jnc(labels[addr]);
-            break;
-        }
-        case STORE:
-        {
-            uint8_t r = FETCH;
-
-            uint64_t addr = fetch64(pc);
-
-            if (addr < MEM_SIZE)
-            {
-                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-                a.mov(x86::qword_ptr(x86::regs::rsi, addr), x86::regs::rax);
-            }
-            break;
-        }
-        case LDM:
-        {
-            uint8_t r = FETCH;
-            uint64_t addr = fetch64(pc);
-
-            if (addr < MEM_SIZE)
-            {
-                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rsi, addr));
+                a.mov(x86::regs::rax, val);
                 a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
             }
-            break;
-        }
-        case JL:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-                a.jl(labels[addr]);
-            break;
-        }
-        case JLE:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-                a.jle(labels[addr]);
-            break;
-        }
-        case JB:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-                a.jbe(labels[addr]);
-            break;
-        }
-        case JBE:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-                a.jbe(labels[addr]);
-            break;
-        }
-        case JMP_REGV:
-        {
-            std::cerr << "[Error]: jmp by register value is only interpreter feature\n";
-            a.pop(x86::regs::r15);
-            a.pop(x86::regs::r12);
-            a.mov(x86::regs::rax, INTERPRETER_ONLY_OPCODE);
-            a.ret();
-        }
-        case PUSH:
-        {
-            uint8_t r = FETCH;
-            Label skip_ = a.new_anonymous_label("Stack_PUSH");
-            a.cmp(x86::regs::r11, STACK_SIZE);
-            a.jb(skip_);
-            a.pop(x86::regs::r15);
-            a.pop(x86::regs::r12);
-            a.mov(x86::regs::rax, STACK_OVERFLOW);
-            a.ret();
-            a.bind(skip_);
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::qword_ptr(x86::regs::rdx, x86::regs::r11, 3), x86::regs::rax);
-            a.inc(x86::regs::r11);
-            break;
-        }
-        case POP:
-        {
-            uint8_t r = FETCH;
-            Label skip_ = a.new_anonymous_label("Stack_POP");
-            a.cmp(x86::regs::r11, 0);
-            a.jnz(skip_);
-            a.pop(x86::regs::r15);
-            a.pop(x86::regs::r12);
-            a.mov(x86::regs::rax, STACK_UNDERFLOW);
-            a.ret();
-            a.bind(skip_);
-            a.dec(x86::regs::r11);
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdx, x86::regs::r11, 3));
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-
-            break;
-        }
-        case CALL:
-        {
-            uint64_t addr = fetch64(pc);
-
-            if (addr < prog_size)
-            {
-                Label ret_label = a.new_label();
-                a.cmp(x86::regs::r12, CALL_STACK_SIZE);
-                a.jae(ret_label);
-                a.lea(x86::regs::r15, x86::ptr(ret_label));
-                a.mov(x86::qword_ptr(x86::regs::r10, x86::regs::r12, 3), x86::regs::r15);
-                a.inc(x86::regs::r12);
-                a.jmp(labels[addr]);
-                a.bind(ret_label);
+            case ADD: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.add(x86::regs::rax, x86::regs::rcx);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
             }
-            break;
-        }
-        case RET:
-        {
-            a.cmp(x86::regs::r12, 0);
-            Label skip_ = a.new_label();
-            a.jnz(skip_);
-            a.pop(x86::regs::r15);
-            a.pop(x86::regs::r12);
-            a.mov(x86::regs::rax, NO_RETURN_ADDRESS);
-            a.ret();
-            a.bind(skip_);
-            a.dec(x86::regs::r12);
-            a.mov(x86::regs::r15, x86::qword_ptr(x86::regs::r10, x86::regs::r12, 3));
-            a.jmp(x86::regs::r15);
-            break;
-        }
-        case FADD:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.addsd(x86::regs::xmm0, x86::regs::xmm1);
-            a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
-            break;
-        }
-        case FSUB:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.subsd(x86::regs::xmm0, x86::regs::xmm1);
-            a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
-            break;
-        }
-        case FMUL:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.mulsd(x86::regs::xmm0, x86::regs::xmm1);
-            a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
-            break;
-        }
-        case FDIV:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            Label skip_div = a.new_named_label("skip_div_by_zero");
-            a.xorpd(x86::regs::xmm0, x86::regs::xmm0);
-            a.ucomisd(x86::regs::xmm1, x86::regs::xmm0);
-            a.je(skip_div);
-            a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.divsd(x86::regs::xmm0, x86::regs::xmm1);
-            a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
-            a.bind(skip_div);
-            break;
-        }
-        case COPY:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::qword_ptr(x86::regs::rdi, r2 * 8), x86::regs::rax);
-            break;
-        }
-        case SWAP:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.mov(x86::qword_ptr(x86::regs::rdi, r2 * 8), x86::regs::rax);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rcx);
-            break;
-        }
-        case FMA:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            uint8_t r3 = FETCH;
-            if (!features.has(CpuFeatures::X86::kFMA))
-            {
-                if (this->warning_rt)
-                {
-                    std::cerr << "[Warning]: fma doesnt supported on this machine, used emulation\n";
+            case SUB: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.sub(x86::regs::rax, x86::regs::rcx);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case MUL: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.mul(x86::regs::rcx);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case DIV: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.cmp(x86::regs::rcx, 0);
+                Label skip_div = a.new_label();
+                a.jz(skip_div);
+                a.xor_(x86::regs::rdx, x86::regs::rdx);
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.div(x86::regs::rcx);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                a.bind(skip_div);
+                break;
+            }
+            case IMUL: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.imul(x86::regs::rax, x86::regs::rax, x86::regs::rcx);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case IDIV: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.cmp(x86::regs::rcx, 0);
+                Label skip_idiv = a.new_label();
+                a.jz(skip_idiv);
+                a.xor_(x86::regs::rdx, x86::regs::rdx);
+                a.cqo();
+                a.idiv(x86::regs::rcx);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                a.bind(skip_idiv);
+                break;
+            }
+            case XOR_: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.xor_(x86::regs::rax, x86::regs::rcx);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case AND_: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.and_(x86::regs::rax, x86::regs::rcx);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case OR_: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.or_(x86::regs::rax, x86::regs::rcx);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case SHL: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.mov(x86::cl, x86::regs::rcx);
+                a.shl(x86::regs::rax, x86::cl);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case SHR: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.mov(x86::cl, x86::regs::rcx);
+                a.shr(x86::regs::rax, x86::cl);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case JMP: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                    a.jmp(labels[addr]);
+                break;
+            }
+            case CMP: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.cmp(x86::regs::rax, x86::regs::rcx);
+                break;
+            }
+            case JZ: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                    a.jz(labels[addr]);
+                break;
+            }
+            case JNZ: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                    a.jnz(labels[addr]);
+                break;
+            }
+            case JC: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                    a.jc(labels[addr]);
+                break;
+            }
+            case JNC: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                    a.jnc(labels[addr]);
+                break;
+            }
+            case STORE: {
+                uint8_t r = FETCH;
+
+                uint64_t addr = fetch64(pc);
+
+                if (addr < MEM_SIZE) {
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                    a.mov(x86::qword_ptr(x86::regs::rsi, addr), x86::regs::rax);
                 }
+                break;
+            }
+            case LDM: {
+                uint8_t r = FETCH;
+                uint64_t addr = fetch64(pc);
+
+                if (addr < MEM_SIZE) {
+                    a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rsi, addr));
+                    a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                }
+                break;
+            }
+            case JL: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                    a.jl(labels[addr]);
+                break;
+            }
+            case JLE: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                    a.jle(labels[addr]);
+                break;
+            }
+            case JB: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                    a.jbe(labels[addr]);
+                break;
+            }
+            case JBE: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size)
+                    a.jbe(labels[addr]);
+                break;
+            }
+            case JMP_REGV: {
+                std::cerr << "[Error]: jmp by register value is only interpreter feature\n";
+                a.pop(x86::regs::r15);
+                a.pop(x86::regs::r12);
+                a.mov(x86::regs::rax, INTERPRETER_ONLY_OPCODE);
+                a.ret();
+            }
+            case PUSH: {
+                uint8_t r = FETCH;
+                Label skip_ = a.new_anonymous_label("Stack_PUSH");
+                a.cmp(x86::regs::r11, STACK_SIZE);
+                a.jb(skip_);
+                a.pop(x86::regs::r15);
+                a.pop(x86::regs::r12);
+                a.mov(x86::regs::rax, STACK_OVERFLOW);
+                a.ret();
+                a.bind(skip_);
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::qword_ptr(x86::regs::rdx, x86::regs::r11, 3), x86::regs::rax);
+                a.inc(x86::regs::r11);
+                break;
+            }
+            case POP: {
+                uint8_t r = FETCH;
+                Label skip_ = a.new_anonymous_label("Stack_POP");
+                a.cmp(x86::regs::r11, 0);
+                a.jnz(skip_);
+                a.pop(x86::regs::r15);
+                a.pop(x86::regs::r12);
+                a.mov(x86::regs::rax, STACK_UNDERFLOW);
+                a.ret();
+                a.bind(skip_);
+                a.dec(x86::regs::r11);
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdx, x86::regs::r11, 3));
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+
+                break;
+            }
+            case CALL: {
+                uint64_t addr = fetch64(pc);
+
+                if (addr < prog_size) {
+                    Label ret_label = a.new_label();
+                    a.cmp(x86::regs::r12, CALL_STACK_SIZE);
+                    a.jae(ret_label);
+                    a.lea(x86::regs::r15, x86::ptr(ret_label));
+                    a.mov(x86::qword_ptr(x86::regs::r10, x86::regs::r12, 3), x86::regs::r15);
+                    a.inc(x86::regs::r12);
+                    a.jmp(labels[addr]);
+                    a.bind(ret_label);
+                }
+                break;
+            }
+            case RET: {
+                a.cmp(x86::regs::r12, 0);
+                Label skip_ = a.new_label();
+                a.jnz(skip_);
+                a.pop(x86::regs::r15);
+                a.pop(x86::regs::r12);
+                a.mov(x86::regs::rax, NO_RETURN_ADDRESS);
+                a.ret();
+                a.bind(skip_);
+                a.dec(x86::regs::r12);
+                a.mov(x86::regs::r15, x86::qword_ptr(x86::regs::r10, x86::regs::r12, 3));
+                a.jmp(x86::regs::r15);
+                break;
+            }
+            case FADD: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
                 a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
                 a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-                a.movq(x86::regs::xmm2, x86::qword_ptr(x86::regs::rdi, r3 * 8));
-                a.mulsd(x86::regs::xmm0, x86::regs::xmm2);
                 a.addsd(x86::regs::xmm0, x86::regs::xmm1);
+                a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
+                break;
             }
-            else
-            {
+            case FSUB: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
                 a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
                 a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-                a.movq(x86::regs::xmm2, x86::qword_ptr(x86::regs::rdi, r3 * 8));
-                a.vfmadd132sd(x86::regs::xmm0, x86::regs::xmm1, x86::regs::xmm2);
+                a.subsd(x86::regs::xmm0, x86::regs::xmm1);
+                a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
+                break;
             }
-            a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
-            break;
-        }
-        case LTF:
-        {
-            uint8_t r = FETCH;
-            uint64_t val = fetch64(pc);
-
-            a.movabs(x86::regs::rax, val);
-            a.cvtsi2sd(x86::regs::xmm0, x86::regs::rax);
-            a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
-            break;
-        }
-        case FTL:
-        {
-            uint8_t r = FETCH;
-            a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
-            if (!features.has(CpuFeatures::X86::kAVX512_F))
-            {
-                if (warning_rt)
-                {
-                    std::cerr << "[Warning]: Host cpu doesnt have AVX-512 for FTL instuction, used SSE2-cvttsd2si\n";
+            case FMUL: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.mulsd(x86::regs::xmm0, x86::regs::xmm1);
+                a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
+                break;
+            }
+            case FDIV: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                Label skip_div = a.new_named_label("skip_div_by_zero");
+                a.xorpd(x86::regs::xmm0, x86::regs::xmm0);
+                a.ucomisd(x86::regs::xmm1, x86::regs::xmm0);
+                a.je(skip_div);
+                a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.divsd(x86::regs::xmm0, x86::regs::xmm1);
+                a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
+                a.bind(skip_div);
+                break;
+            }
+            case COPY: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::qword_ptr(x86::regs::rdi, r2 * 8), x86::regs::rax);
+                break;
+            }
+            case SWAP: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.mov(x86::qword_ptr(x86::regs::rdi, r2 * 8), x86::regs::rax);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rcx);
+                break;
+            }
+            case FMA: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                uint8_t r3 = FETCH;
+                if (!features.has(CpuFeatures::X86::kFMA)) {
+                    if (this->warning_rt) {
+                        std::cerr << "[Warning]: fma doesnt supported on this machine, used emulation\n";
+                    }
+                    a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
+                    a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                    a.movq(x86::regs::xmm2, x86::qword_ptr(x86::regs::rdi, r3 * 8));
+                    a.mulsd(x86::regs::xmm0, x86::regs::xmm2);
+                    a.addsd(x86::regs::xmm0, x86::regs::xmm1);
+                } else {
+                    a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
+                    a.movq(x86::regs::xmm1, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                    a.movq(x86::regs::xmm2, x86::qword_ptr(x86::regs::rdi, r3 * 8));
+                    a.vfmadd132sd(x86::regs::xmm0, x86::regs::xmm1, x86::regs::xmm2);
                 }
-                a.cvttsd2si(x86::regs::rax, x86::regs::xmm0);
-                a.test(x86::regs::rax, x86::regs::rax);
-                Label done = a.new_anonymous_label("done");
-                a.jns(done);
-                a.add(x86::regs::rax, 9223372036854775808ULL);
-                a.bind(done);
+                a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
+                break;
             }
-            else
-            {
-                a.vcvttsd2usi(x86::regs::rax, x86::regs::xmm0);
+            case LTF: {
+                uint8_t r = FETCH;
+                uint64_t val = fetch64(pc);
+
+                a.movabs(x86::regs::rax, val);
+                a.cvtsi2sd(x86::regs::xmm0, x86::regs::rax);
+                a.movq(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::xmm0);
+                break;
             }
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case NOT:
-        {
-            uint8_t r = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.not_(x86::regs::rax);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case ROR:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.and_(x86::regs::rcx, 63);
-            a.mov(x86::regs::cl, x86::regs::rcx);
-            a.ror(x86::regs::rax, x86::regs::cl);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case ROL:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.and_(x86::regs::rcx, 63);
-            a.mov(x86::regs::cl, x86::regs::rcx);
-            a.rol(x86::regs::rax, x86::regs::cl);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case ARX:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
-            uint8_t r3 = FETCH;
-            uint8_t r4 = FETCH;
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.mov(x86::regs::r8, x86::qword_ptr(x86::regs::rdi, r3 * 8));
-            a.mov(x86::regs::r9, x86::qword_ptr(x86::regs::rdi, r4 * 8));
-            a.and_(x86::regs::r8, 63);
-            a.add(x86::regs::rax, x86::regs::rcx);
-            a.mov(x86::regs::cl, x86::regs::r8b);
-            a.rol(x86::regs::rax, x86::regs::cl);
-            a.xor_(x86::regs::rax, x86::regs::r9);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
-            break;
-        }
-        case STORX:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
+            case FTL: {
+                uint8_t r = FETCH;
+                a.movq(x86::regs::xmm0, x86::qword_ptr(x86::regs::rdi, r * 8));
+                if (!features.has(CpuFeatures::X86::kAVX512_F)) {
+                    if (warning_rt) {
+                        std::cerr
+                            << "[Warning]: Host cpu doesnt have AVX-512 for FTL instuction, used SSE2-cvttsd2si\n";
+                    }
+                    a.cvttsd2si(x86::regs::rax, x86::regs::xmm0);
+                    a.test(x86::regs::rax, x86::regs::rax);
+                    Label done = a.new_anonymous_label("done");
+                    a.jns(done);
+                    a.add(x86::regs::rax, 9223372036854775808ULL);
+                    a.bind(done);
+                } else {
+                    a.vcvttsd2usi(x86::regs::rax, x86::regs::xmm0);
+                }
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case NOT: {
+                uint8_t r = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.not_(x86::regs::rax);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case ROR: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.and_(x86::regs::rcx, 63);
+                a.mov(x86::regs::cl, x86::regs::rcx);
+                a.ror(x86::regs::rax, x86::regs::cl);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case ROL: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.and_(x86::regs::rcx, 63);
+                a.mov(x86::regs::cl, x86::regs::rcx);
+                a.rol(x86::regs::rax, x86::regs::cl);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case ARX: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
+                uint8_t r3 = FETCH;
+                uint8_t r4 = FETCH;
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.mov(x86::regs::r8, x86::qword_ptr(x86::regs::rdi, r3 * 8));
+                a.mov(x86::regs::r9, x86::qword_ptr(x86::regs::rdi, r4 * 8));
+                a.and_(x86::regs::r8, 63);
+                a.add(x86::regs::rax, x86::regs::rcx);
+                a.mov(x86::regs::cl, x86::regs::r8b);
+                a.rol(x86::regs::rax, x86::regs::cl);
+                a.xor_(x86::regs::rax, x86::regs::r9);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case STORX: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
 
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.shl(x86::regs::rcx, 3);
-            a.cmp(x86::regs::rcx, MEM_SIZE);
-            Label l = a.new_anonymous_label("OUT_OF_BOUNDS_SKIP");
-            a.jb(l);
-            a.pop(x86::regs::r15);
-            a.pop(x86::regs::r12);
-            a.mov(x86::regs::rax, OUT_OF_BOUND_MEMORY_ACCESS_WRITE);
-            a.ret();
-            a.bind(l);
-            a.mov(x86::qword_ptr(x86::regs::rsi, x86::regs::rcx, 0), x86::regs::rax);
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.shl(x86::regs::rcx, 3);
+                a.cmp(x86::regs::rcx, MEM_SIZE);
+                Label l = a.new_anonymous_label("OUT_OF_BOUNDS_SKIP");
+                a.jb(l);
+                a.pop(x86::regs::r15);
+                a.pop(x86::regs::r12);
+                a.mov(x86::regs::rax, OUT_OF_BOUND_MEMORY_ACCESS_WRITE);
+                a.ret();
+                a.bind(l);
+                a.mov(x86::qword_ptr(x86::regs::rsi, x86::regs::rcx, 0), x86::regs::rax);
 
-            break;
-        }
-        case LDMX:
-        {
-            uint8_t r = FETCH;
-            uint8_t r2 = FETCH;
+                break;
+            }
+            case LDMX: {
+                uint8_t r = FETCH;
+                uint8_t r2 = FETCH;
 
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
-            a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
-            a.shl(x86::regs::rcx, 3);
-            a.cmp(x86::regs::rcx, MEM_SIZE);
-            Label l = a.new_anonymous_label("OUT_OF_BOUNDS_SKIP");
-            a.jb(l);
-            a.pop(x86::regs::r15);
-            a.pop(x86::regs::r12);
-            a.mov(x86::regs::rax, OUT_OF_BOUND_MEMORY_ACCESS_READ);
-            a.ret();
-            a.bind(l);
-            a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rsi, x86::regs::rcx, 0));
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.mov(x86::regs::rcx, x86::qword_ptr(x86::regs::rdi, r2 * 8));
+                a.shl(x86::regs::rcx, 3);
+                a.cmp(x86::regs::rcx, MEM_SIZE);
+                Label l = a.new_anonymous_label("OUT_OF_BOUNDS_SKIP");
+                a.jb(l);
+                a.pop(x86::regs::r15);
+                a.pop(x86::regs::r12);
+                a.mov(x86::regs::rax, OUT_OF_BOUND_MEMORY_ACCESS_READ);
+                a.ret();
+                a.bind(l);
+                a.mov(x86::regs::rax, x86::qword_ptr(x86::regs::rsi, x86::regs::rcx, 0));
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
 
-            break;
-        }
-        case LDZERO:
-        {
-            uint8_t r = FETCH;
-            a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), 0);
-            break;
-        }
-        case PRINT_REG: {
-            uint8_t r = FETCH;
-            a.push(x86::regs::rdi);
-            a.mov(x86::regs::rdi,
-                x86::qword_ptr(x86::regs::rdi, r * 8));
+                break;
+            }
+            case LDZERO: {
+                uint8_t r = FETCH;
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), 0);
+                break;
+            }
+            case PRINT_REG: {
+                uint8_t r = FETCH;
+                a.push(x86::regs::rdi);
+                a.mov(x86::regs::rdi, x86::qword_ptr(x86::regs::rdi, r * 8));
 
-            a.mov(x86::regs::rax, (uint64_t)(void*)print);
-            a.call(x86::regs::rax);
+                a.mov(x86::regs::rax, (uint64_t)(void *)print);
+                a.call(x86::regs::rax);
 
 
-            a.pop(x86::regs::rdi);;
-            break;
-        }
-        case INPUT_REG: {
-            uint8_t r = FETCH;
-            a.push(x86::regs::rdi);
-            a.mov(x86::regs::rdi,
-                x86::qword_ptr(x86::regs::rdi, r * 8));
+                a.pop(x86::regs::rdi);
+                ;
+                break;
+            }
+            case INPUT_REG: {
+                uint8_t r = FETCH;
+                a.push(x86::regs::rdi);
+                a.mov(x86::regs::rdi, x86::qword_ptr(x86::regs::rdi, r * 8));
 
-            a.mov(x86::regs::rax, (uint64_t)(void*)input);
-            a.call(x86::regs::rax);
-            a.pop(x86::regs::rdi);
-            a.mov(x86::qword_ptr(x86::regs::rdi, r*8), x86::regs::rax);
-            break;
-        }
-        case HLT:
-        {
-            a.pop(x86::regs::r15);
-            a.pop(x86::regs::r12);
-            a.xor_(x86::regs::rax, x86::regs::rax);
-            a.ret();
-            break;
-        }
-        default:
-        {
-            std::cerr << "[Error]: Unknown instruction '" << (int)this->memory[pc] << "', stopping execution...\n";
-            pc = 0;
-            return;
-        }
+                a.mov(x86::regs::rax, (uint64_t)(void *)input);
+                a.call(x86::regs::rax);
+                a.pop(x86::regs::rdi);
+                a.mov(x86::qword_ptr(x86::regs::rdi, r * 8), x86::regs::rax);
+                break;
+            }
+            case HLT: {
+                a.pop(x86::regs::r15);
+                a.pop(x86::regs::r12);
+                a.xor_(x86::regs::rax, x86::regs::rax);
+                a.ret();
+                break;
+            }
+            default: {
+                std::cerr << "[Error]: Unknown instruction '" << (int)this->memory[pc] << "', stopping execution...\n";
+                pc = 0;
+                return;
+            }
         }
     }
     a.finalize();
-    if (this->verbose) std::cout << logger.data();
+    if (this->verbose)
+        std::cout << logger.data();
     code.set_logger(nullptr);
 }
 
 int NowaVM::interpret(const uint32_t &ip) {
     uint8_t i = 0;
     this->pc = ip;
-    while(pc < prog_size) {
+    while (pc < prog_size) {
         i = FETCH;
-        switch (i)
-            {
+        switch (i) {
             case NOOP:
                 continue;
                 break;
-            case LD:
-            {
+            case LD: {
                 uint8_t r = FETCH;
                 uint64_t val = fetch64(pc);
 
                 this->reg[r] = val;
                 break;
             }
-            case ADD:
-            {
+            case ADD: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                this->reg[r] =(this->reg[r]+this->reg[r2]);
-                __int128_t res = (this->reg[r]+this->reg[r2]);
-                if(res>UINT64_MAX) cf = true;
+                this->reg[r] = (this->reg[r] + this->reg[r2]);
+                __int128_t res = (this->reg[r] + this->reg[r2]);
+                if (res > UINT64_MAX)
+                    cf = true;
                 break;
             }
-            case SUB:
-            {
+            case SUB: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                this->reg[r] =(this->reg[r]-this->reg[r2]);
-                __int128_t res = (this->reg[r]-this->reg[r2]);
-                if(res<0) cf = true;
+                this->reg[r] = (this->reg[r] - this->reg[r2]);
+                __int128_t res = (this->reg[r] - this->reg[r2]);
+                if (res < 0)
+                    cf = true;
                 break;
             }
-            case MUL:
-            {
+            case MUL: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
 
-                this->reg[r] =(this->reg[r]*this->reg[r2]);
+                this->reg[r] = (this->reg[r] * this->reg[r2]);
                 break;
             }
-            case DIV:
-            {
+            case DIV: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                if(this->reg[r2]==0) {
-                    this->reg[r]=0;
-                    if(warning_rt) {
+                if (this->reg[r2] == 0) {
+                    this->reg[r] = 0;
+                    if (warning_rt) {
                         std::cerr << "[Warning]: division by zero is undefined, value of r" << r << " set to 0\n";
                     }
                 }
-                this->reg[r] = (this->reg[r]/this->reg[r2]);
+                this->reg[r] = (this->reg[r] / this->reg[r2]);
                 break;
             }
-            case IMUL:
-            {
+            case IMUL: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                this->reg[r] = (uint64_t)((int64_t)this->reg[r]*(int64_t)this->reg[r2]);
+                this->reg[r] = (uint64_t)((int64_t)this->reg[r] * (int64_t)this->reg[r2]);
                 break;
             }
-            case IDIV:
-            {
+            case IDIV: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                if(this->reg[r2]==0) {
-                    this->reg[r]=0;
-                    if(warning_rt) {
+                if (this->reg[r2] == 0) {
+                    this->reg[r] = 0;
+                    if (warning_rt) {
                         std::cerr << "[Warning]: division by zero is undefined, value of r" << r << " set to 0\n";
                     }
                 }
-                this->reg[r] = (uint64_t)((int64_t)this->reg[r]/(int64_t)this->reg[r2]);
+                this->reg[r] = (uint64_t)((int64_t)this->reg[r] / (int64_t)this->reg[r2]);
                 break;
             }
-            case XOR_:
-            {
+            case XOR_: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 this->reg[r] ^= this->reg[r2];
                 break;
             }
-            case AND_:
-            {
+            case AND_: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 this->reg[r] &= this->reg[r2];
                 break;
             }
-            case OR_:
-            {
+            case OR_: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 this->reg[r] |= this->reg[r2];
                 break;
             }
-            case SHL:
-            {
+            case SHL: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 this->reg[r] <<= this->reg[r2];
                 break;
             }
-            case SHR:
-            {
+            case SHR: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 this->reg[r] >>= this->reg[r2];
                 break;
             }
-            case JMP:
-            {
+            case JMP: {
                 uint64_t addr = fetch64(pc);
 
                 if (addr < prog_size) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped to address " << addr << '\n';
+                    if (verbose)
+                        std::cout << "[Info]: jumped to address " << addr << '\n';
                 }
                 break;
             }
-            case CMP:
-            {
+            case CMP: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 uint64_t a = this->reg[r];
                 uint64_t b = this->reg[r2];
-                zf = a==b;
-                less = a<b;
-                bigger = a>b;
-                __int128_t res = (this->reg[r]-this->reg[r2]);
-                if(res<0) cf = true;
+                zf = a == b;
+                less = a < b;
+                bigger = a > b;
+                __int128_t res = (this->reg[r] - this->reg[r2]);
+                if (res < 0)
+                    cf = true;
                 break;
             }
-            case JZ:
-            {
+            case JZ: {
                 uint64_t addr = fetch64(pc);
 
-                if(addr < prog_size && zf) {
+                if (addr < prog_size && zf) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped if zero flag to address " << addr << '\n';
-                }  
+                    if (verbose)
+                        std::cout << "[Info]: jumped if zero flag to address " << addr << '\n';
+                }
                 break;
             }
-            case JNZ:
-            {
+            case JNZ: {
                 uint64_t addr = fetch64(pc);
 
-                if(addr < prog_size && !zf) {
+                if (addr < prog_size && !zf) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped if not zero flag to address " << addr << '\n';
-                }  
+                    if (verbose)
+                        std::cout << "[Info]: jumped if not zero flag to address " << addr << '\n';
+                }
                 break;
             }
-            case JC:
-            {
+            case JC: {
                 uint64_t addr = fetch64(pc);
 
-                if(addr < prog_size && cf) {
+                if (addr < prog_size && cf) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped if carry to address " << addr << '\n';
-                }  
+                    if (verbose)
+                        std::cout << "[Info]: jumped if carry to address " << addr << '\n';
+                }
                 break;
             }
-            case JNC:
-            {
+            case JNC: {
                 uint64_t addr = fetch64(pc);
 
-                if(addr < prog_size && !cf) {
+                if (addr < prog_size && !cf) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped if not carry to address " << addr << '\n';
-                }  
+                    if (verbose)
+                        std::cout << "[Info]: jumped if not carry to address " << addr << '\n';
+                }
                 break;
             }
-            case STORE:
-            {
+            case STORE: {
                 uint8_t r = FETCH;
 
                 uint64_t addr = fetch64(pc);
 
-                if (addr < MEM_SIZE)
-                {
+                if (addr < MEM_SIZE) {
                     this->memory[addr] = this->reg[r];
                 } else {
                     return OUT_OF_BOUND_MEMORY_ACCESS_WRITE;
                 }
                 break;
             }
-            case LDM:
-            {
+            case LDM: {
                 uint8_t r = FETCH;
                 uint64_t addr = fetch64(pc);
 
-                if (addr < MEM_SIZE)
-                {
+                if (addr < MEM_SIZE) {
                     this->reg[r] = this->memory[addr];
                 } else {
                     return OUT_OF_BOUND_MEMORY_ACCESS_READ;
                 }
                 break;
             }
-            case JL:
-            {
+            case JL: {
                 uint64_t addr = fetch64(pc);
 
-                if(addr < prog_size && less) {
+                if (addr < prog_size && less) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped if less to address " << addr << '\n';
-                }  
+                    if (verbose)
+                        std::cout << "[Info]: jumped if less to address " << addr << '\n';
+                }
                 break;
             }
-            case JLE:
-            {
+            case JLE: {
                 uint64_t addr = fetch64(pc);
 
-                if(addr < prog_size && less && zf) {
+                if (addr < prog_size && less && zf) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped if less and zero flag to address " << addr << '\n';
-                }  
+                    if (verbose)
+                        std::cout << "[Info]: jumped if less and zero flag to address " << addr << '\n';
+                }
                 break;
             }
-            case JB:
-            {
+            case JB: {
                 uint64_t addr = fetch64(pc);
 
-                if(addr < prog_size && bigger) {
+                if (addr < prog_size && bigger) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped if bigger to address " << addr << '\n';
-                }  
+                    if (verbose)
+                        std::cout << "[Info]: jumped if bigger to address " << addr << '\n';
+                }
                 break;
             }
-            case JBE:
-            {
+            case JBE: {
                 uint64_t addr = fetch64(pc);
 
-                if(addr < prog_size && bigger && zf) {
+                if (addr < prog_size && bigger && zf) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped if bigger and zero flag to address " << addr << '\n';
-                }  
+                    if (verbose)
+                        std::cout << "[Info]: jumped if bigger and zero flag to address " << addr << '\n';
+                }
                 break;
             }
-            case JMP_REGV:
-            {
+            case JMP_REGV: {
                 uint8_t r = FETCH;
                 uint64_t addr = this->reg[r];
 
                 if (addr < prog_size && zf) {
                     pc = addr;
-                    if(verbose) std::cout << "[Info]: jumped to address " << addr << " from r" << r << '\n';
+                    if (verbose)
+                        std::cout << "[Info]: jumped to address " << addr << " from r" << r << '\n';
                 }
                 break;
             }
-            case PUSH:
-            {
+            case PUSH: {
                 uint8_t r = FETCH;
-                if(sp<STACK_SIZE) {
+                if (sp < STACK_SIZE) {
                     stack[sp++] = this->reg[r];
                 } else {
                     return STACK_OVERFLOW;
                 }
                 break;
             }
-            case POP:
-            {
+            case POP: {
                 uint8_t r = FETCH;
-                if(sp!=0) {
+                if (sp != 0) {
                     this->reg[r] = stack[--sp];
                 } else {
                     return STACK_UNDERFLOW;
                 }
                 break;
             }
-            case CALL:
-            {
+            case CALL: {
                 uint64_t addr = fetch64(pc);
 
-                if (addr < prog_size)
-                {
-                    if(csp<CALL_STACK_SIZE) {
+                if (addr < prog_size) {
+                    if (csp < CALL_STACK_SIZE) {
                         callstack[csp++] = pc;
                         pc = addr;
-                        if(verbose) std::cout << "[Info]: calling address " << addr << '\n';
+                        if (verbose)
+                            std::cout << "[Info]: calling address " << addr << '\n';
                     } else {
                         return CALL_STACK_OVERFLOW;
                     }
@@ -935,54 +858,56 @@ int NowaVM::interpret(const uint32_t &ip) {
                 }
                 break;
             }
-            case RET:
-            {
-                if(csp==0) {
+            case RET: {
+                if (csp == 0) {
                     std::cerr << "[Error]: no return address found in call stack, ret called at address " << pc << '\n';
                 } else {
                     uint64_t before = pc;
                     pc = callstack[--csp];
-                    if(verbose) std::cout << "[Info]: returning to address " << pc << " from " << before << '\n';
+                    if (verbose)
+                        std::cout << "[Info]: returning to address " << pc << " from " << before << '\n';
                 }
                 break;
             }
-            case FADD:
-            {
+            case FADD: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                this->reg[r] = fadd((double)this->reg[r], (double)this->reg[r2]);
+                double left = std::bit_cast<double>(this->reg[r]);
+                double right = std::bit_cast<double>(this->reg[r2]);
+                this->reg[r] = std::bit_cast<uint64_t>(add_double(left, right));
                 break;
             }
-            case FSUB:
-            {
+            case FSUB: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                this->reg[r] = fsub((double)this->reg[r], (double)this->reg[r2]);
+                double left = std::bit_cast<double>(this->reg[r]);
+                double right = std::bit_cast<double>(this->reg[r2]);
+                this->reg[r] = std::bit_cast<uint64_t>(subtract_double(left, right));
                 break;
             }
-            case FMUL:
-            {
+            case FMUL: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                this->reg[r] = fmul((double)this->reg[r], (double)this->reg[r2]);
+                double left = std::bit_cast<double>(this->reg[r]);
+                double right = std::bit_cast<double>(this->reg[r2]);
+                this->reg[r] = std::bit_cast<uint64_t>(multiply_double(left, right));
                 break;
             }
-            case FDIV:
-            {
+            case FDIV: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                this->reg[r] = fdiv((double)this->reg[r], (double)this->reg[r2]);
+                double left = std::bit_cast<double>(this->reg[r]);
+                double right = std::bit_cast<double>(this->reg[r2]);
+                this->reg[r] = std::bit_cast<uint64_t>(divide_double(left, right));
                 break;
             }
-            case COPY:
-            {
+            case COPY: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 this->reg[r2] = this->reg[r];
                 break;
             }
-            case SWAP:
-            {
+            case SWAP: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 uint64_t temp = this->reg[r2];
@@ -990,95 +915,94 @@ int NowaVM::interpret(const uint32_t &ip) {
                 this->reg[r] = temp;
                 break;
             }
-            case FMA:
-            {
+            case FMA: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 uint8_t r3 = FETCH;
 
-                this->reg[r] = std::fma((double)this->reg[r], (double)this->reg[r2], this->reg[r3]);
+                double multiplicand = std::bit_cast<double>(this->reg[r]);
+                double multiplier = std::bit_cast<double>(this->reg[r2]);
+                double addend = std::bit_cast<double>(this->reg[r3]);
+                this->reg[r] = std::bit_cast<uint64_t>(std::fma(multiplicand, multiplier, addend));
                 break;
             }
-            case LTF:
-            {
+            case LTF: {
                 uint8_t r = FETCH;
                 uint64_t val = fetch64(pc);
 
                 this->reg[r] = (double)val;
                 break;
             }
-            case FTL:
-            {
+            case FTL: {
                 uint8_t r = FETCH;
                 this->reg[r] = std::round(this->reg[r]);
                 break;
             }
-            case NOT:
-            {
+            case NOT: {
                 uint8_t r = FETCH;
                 this->reg[r] = ~this->reg[r];
                 break;
             }
-            case ROR:
-            {
+            case ROR: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                this->reg[r] = std::rotr(this->reg[r], (uint8_t)this->reg[r2]&63);
+                this->reg[r] = std::rotr(this->reg[r], (uint8_t)this->reg[r2] & 63);
                 break;
             }
-            case ROL:
-            {
+            case ROL: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
-                this->reg[r] = std::rotl(this->reg[r], (uint8_t)this->reg[r2]&63);
+                this->reg[r] = std::rotl(this->reg[r], (uint8_t)this->reg[r2] & 63);
                 break;
             }
-            case ARX:
-            {
+            case ARX: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
                 uint8_t r3 = FETCH;
                 uint8_t r4 = FETCH;
-                this->reg[r] = std::rotl((this->reg[r]+this->reg[r2]), (uint8_t)this->reg[r3]&63)^this->reg[r4];
+                this->reg[r] = std::rotl((this->reg[r] + this->reg[r2]), (uint8_t)this->reg[r3] & 63) ^ this->reg[r4];
                 break;
             }
-            case STORX:
-            {
+            case STORX: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
 
-                if(r2*8<MEM_SIZE) {
-                    this->memory[(unsigned long)r2*8] = this->reg[r];
+                if (r2 * 8 < MEM_SIZE) {
+                    this->memory[(unsigned long)r2 * 8] = this->reg[r];
                 } else {
                     return OUT_OF_BOUND_MEMORY_ACCESS_WRITE;
                 }
 
                 break;
             }
-            case LDMX:
-            {
+            case LDMX: {
                 uint8_t r = FETCH;
                 uint8_t r2 = FETCH;
 
-                if(r2*8<MEM_SIZE) {
-                    this->reg[r] = this->memory[(unsigned long)r2*8];
+                if (r2 * 8 < MEM_SIZE) {
+                    this->reg[r] = this->memory[(unsigned long)r2 * 8];
                 } else {
                     return OUT_OF_BOUND_MEMORY_ACCESS_READ;
                 }
                 break;
             }
-            case LDZERO:
-            {
+            case LDZERO: {
                 uint8_t r = FETCH;
                 this->reg[r] = 0;
                 break;
             }
-            case HLT:
-            {
+            case EXTENSION: {
+                uint8_t n = FETCH;
+                [[likely]]
+                if(n==1) {
+                    runExtension_VEXT(this->pc++);
+                }
+                break;
+            }
+            case HLT: {
                 return 0;
             }
-            default:
-            {
+            default: {
                 std::cerr << "[Error]: Unknown instruction '" << (int)this->memory[pc] << "', stopping execution...\n";
                 pc = 0;
                 return UNKNOWN_ERROR;
@@ -1089,22 +1013,18 @@ int NowaVM::interpret(const uint32_t &ip) {
 }
 
 
-bool NowaVM::qual_bytecode(uint64_t start, uint64_t end, const uint8_t bytecode[])
-{
+bool NowaVM::qual_bytecode(uint64_t start, uint64_t end, const uint8_t bytecode[]) {
     if (end >= prog_size)
         return false;
     return std::memcmp(this->memory.data() + start, bytecode, end - start) == 0;
 }
-void NowaVM::analyzer(std::vector<uint8_t> &prog)
-{
+void NowaVM::analyzer(std::vector<uint8_t> &prog) {
     uint64_t size = prog.size();
-    for (uint64_t i = 0; i < size;)
-    {
+    for (uint64_t i = 0; i < size;) {
         if (prog[i] == LD && i + 23 < size && prog[i + 10] == LD &&
             (prog[i + 20] == ADD || prog[i + 20] == SUB || prog[i + 20] == MUL || prog[i + 20] == DIV ||
              prog[i + 20] == IMUL || prog[i + 20] == IDIV || prog[i + 20] == XOR_ || prog[i + 20] == AND_ ||
-             prog[i + 20] == OR_))
-        {
+             prog[i + 20] == OR_)) {
             // ld r0, imm1(8)
             // ld r1, imm2(8)
             // add, r0, r1
@@ -1118,8 +1038,7 @@ void NowaVM::analyzer(std::vector<uint8_t> &prog)
             uint8_t b = prog[i + 11];
             uint8_t c = prog[i + 21];
             uint8_t d = prog[i + 22];
-            if (a != c || b != d)
-            {
+            if (a != c || b != d) {
                 i += 23;
                 continue;
             }
@@ -1129,63 +1048,56 @@ void NowaVM::analyzer(std::vector<uint8_t> &prog)
             uint64_t val2 = into64(temp_indx2, prog);
             uint8_t opcode = prog[i + 20];
             uint64_t v = 0;
-            switch (opcode)
-            {
-            case ADD:
-                v = val + val2;
-                break;
-            case SUB:
-                v = val - val2;
-                break;
-            case MUL:
-                v = val * val2;
-                break;
-            case DIV:
-                v = val / val2;
-                break;
-            case IMUL:
-                v = (int64_t)val * (int64_t)val2;
-                break;
-            case IDIV:
-                v = (int64_t)val / (int64_t)val2;
-                break;
-            case XOR_:
-                v = val ^ val2;
-                break;
-            case AND_:
-                v = val & val2;
-                break;
-            case OR_:
-                v = val | val2;
-                break;
-            default:
-                break;
+            switch (opcode) {
+                case ADD:
+                    v = val + val2;
+                    break;
+                case SUB:
+                    v = val - val2;
+                    break;
+                case MUL:
+                    v = val * val2;
+                    break;
+                case DIV:
+                    v = val / val2;
+                    break;
+                case IMUL:
+                    v = (int64_t)val * (int64_t)val2;
+                    break;
+                case IDIV:
+                    v = (int64_t)val / (int64_t)val2;
+                    break;
+                case XOR_:
+                    v = val ^ val2;
+                    break;
+                case AND_:
+                    v = val & val2;
+                    break;
+                case OR_:
+                    v = val | val2;
+                    break;
+                default:
+                    break;
             }
 
             std::array<uint8_t, 8> newvalr0 = slice64(v);
             temp_indx1 = 0;
-            for (uint64_t j = i + 2; j < i + 10; j++)
-            {
+            for (uint64_t j = i + 2; j < i + 10; j++) {
                 prog[j] = newvalr0[temp_indx1];
                 temp_indx1++;
             }
             for (uint64_t k = i + 20; k < i + 23; k++)
                 prog[k] = NOOP; // noop
             i += 23;
-        }
-        else if (i + 3 < size && prog[i] == PUSH && prog[i + 2] == POP)
-        {
-            if (prog[i + 1] == prog[i + 3])
-            {
+        } else if (i + 3 < size && prog[i] == PUSH && prog[i + 2] == POP) {
+            if (prog[i + 1] == prog[i + 3]) {
                 // push r0
                 // pop r0
                 // ->
                 // NOOP (dead code)
                 for (uint64_t k = i; k < i + 4; k++)
                     prog[k] = NOOP; // noop
-            }
-            else
-            {
+            } else {
                 // push r0
                 // pop r1
                 // ->
@@ -1195,9 +1107,7 @@ void NowaVM::analyzer(std::vector<uint8_t> &prog)
                 prog[i + 3] = NOOP;
             }
             i += 4;
-        }
-        else if (i + 2 < size && (prog[i] == COPY || prog[i] == SWAP) && prog[i + 1] == prog[i + 2])
-        {
+        } else if (i + 2 < size && (prog[i] == COPY || prog[i] == SWAP) && prog[i + 1] == prog[i + 2]) {
             // copy r0 r0
             // swap r0 r0
             // ->
@@ -1205,43 +1115,324 @@ void NowaVM::analyzer(std::vector<uint8_t> &prog)
             prog[i] = NOOP;
             prog[i + 1] = NOOP;
             prog[i + 2] = NOOP;
-            i+=3;
-        }
-        else
+            i += 3;
+        } else
             i++;
     }
 }
-int NowaVM::res()
-{
+int NowaVM::res() {
     Func fn;
     Error err = rt.add(&fn, &code);
     int res = fn(this->reg, this->memory.data(), this->stack.data(), this->callstack.data());
     rt.release(fn);
     return res;
 }
-void NowaVM::load_program(const std::vector<uint8_t> &prog)
-{
-    for (uint64_t i = 0; i < prog.size(); i++)
-    {
-        if (i >= MEM_SIZE)
-            return;
-        memory[i] = prog[i];
-    }
+void NowaVM::load_program(const std::vector<uint8_t> &prog) {
+    std::memcpy(memory.data(), prog.data(), memory.size());
     prog_size = prog.size();
 }
-void NowaVM::register_dump()
-{
+void NowaVM::register_dump() {
     std::cout << "NowaVM register dump(Zero-value registers not printed):\n";
-    for (uint16_t i = 0; i < 256; i++)
-    {
+    for (uint16_t i = 0; i < 256; i++) {
         auto val = this->reg[i];
-        if (val != 0)
-        {
-            std::cout << "R" << i << " = " << val << ' ';
+        if (val != 0) {
+            std::cout << "R" << i << " = " << std::hex << val << std::hex << ' ';
             if (i != 0 && (i % 8) == 0)
                 std::cout << '\n';
         }
     }
     std::cout << '\n';
     return;
+}
+
+void NowaVM::runExtension_VEXT(const uint32_t& ip) {
+    const uint8_t opcode = memory[ip];
+    switch(opcode) {
+        case VLDQW: {
+            uint8_t r = FETCH;
+            int64_t value = static_cast<int64_t>(fetch64(pc));
+            vreg[r].as_i64[0] = value;
+            return;
+        } 
+        case VLDDW: {
+            uint8_t r = FETCH;
+            int32_t value = static_cast<int32_t>(fetch32(pc));
+            vreg[r].as_i32[0] = value;
+            return;
+        }
+        case VLDW: {
+            uint8_t r = FETCH;
+            int16_t value = static_cast<int16_t>(fetch16(pc));
+            vreg[r].as_i16[0] = value;
+            return;
+        }
+        case VLD: {
+            uint8_t r = FETCH;
+            vreg[r].as_u8[0] = FETCH;
+            return;
+        }
+        case VLDSP: {
+            uint8_t r = FETCH;
+            float value = std::bit_cast<float>(fetch32(pc));
+            vreg[r].as_f32[0] = value;
+            return;
+        }
+        case VLDDP: {
+            uint8_t r = FETCH;
+            double value = std::bit_cast<double>(fetch64(pc));
+            vreg[r].as_f64[0] = value;
+            return;
+        }
+        case VLDLQW: {
+            uint8_t r = FETCH;
+            int64_t value = static_cast<int64_t>(fetch64(pc));
+            uint8_t n = FETCH % 2;
+            vreg[r].as_i64[n] = value;
+            return;
+        }
+        case VADDQW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i64[0] += vreg[rsrc].as_i64[0];
+            vreg[rdst].as_i64[1] += vreg[rsrc].as_i64[1];
+            return;
+        }
+        case VSUBQW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i64[0] -= vreg[rsrc].as_i64[0];
+            vreg[rdst].as_i64[1] -= vreg[rsrc].as_i64[1];
+            return;
+        }
+        case VMULQW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i64[0] *= vreg[rsrc].as_i64[0];
+            vreg[rdst].as_i64[1] *= vreg[rsrc].as_i64[1];
+            return;
+        }
+        case VDIVQW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i64[0] /= vreg[rsrc].as_i64[0];
+            vreg[rdst].as_i64[1] /= vreg[rsrc].as_i64[1];
+            return;
+        }
+        case VADDDW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i32[0] += vreg[rsrc].as_i32[0];
+            vreg[rdst].as_i32[1] += vreg[rsrc].as_i32[1];
+            return;
+        }
+        case VSUBDW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i32[0] -= vreg[rsrc].as_i32[0];
+            vreg[rdst].as_i32[1] -= vreg[rsrc].as_i32[1];
+            return;
+        }
+        case VMULDW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i32[0] *= vreg[rsrc].as_i32[0];
+            vreg[rdst].as_i32[1] *= vreg[rsrc].as_i32[1];
+            return;
+        }
+        case VDIVDW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i32[0] /= vreg[rsrc].as_i32[0];
+            vreg[rdst].as_i32[1] /= vreg[rsrc].as_i32[1];
+            return;
+        }
+        case VADDW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i16[0] += vreg[rsrc].as_i16[0];
+            vreg[rdst].as_i16[1] += vreg[rsrc].as_i16[1];
+            return;
+        }
+        case VSUBW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i16[0] -= vreg[rsrc].as_i16[0];
+            vreg[rdst].as_i16[1] -= vreg[rsrc].as_i16[1];
+            return;
+        }
+        case VMULW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i16[0] *= vreg[rsrc].as_i16[0];
+            vreg[rdst].as_i16[1] *= vreg[rsrc].as_i16[1];
+            return;
+        }
+        case VDIVW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i16[0] /= vreg[rsrc].as_i16[0];
+            vreg[rdst].as_i16[1] /= vreg[rsrc].as_i16[1];
+            return;
+        }
+        case VADD: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_u8[0] += vreg[rsrc].as_u8[0];
+            vreg[rdst].as_u8[1] += vreg[rsrc].as_u8[1];
+            return;
+        }
+        case VSUB: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_u8[0] -= vreg[rsrc].as_u8[0];
+            vreg[rdst].as_u8[1] -= vreg[rsrc].as_u8[1];
+            return;
+        }
+        case VMUL: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_u8[0] *= vreg[rsrc].as_u8[0];
+            vreg[rdst].as_u8[1] *= vreg[rsrc].as_u8[1];
+            return;
+        }
+        case VDIV: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_u8[0] /= vreg[rsrc].as_u8[0];
+            vreg[rdst].as_u8[1] /= vreg[rsrc].as_u8[1];
+            return;
+        }
+        case VADDSP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_f32[0] += vreg[rsrc].as_f32[0];
+            vreg[rdst].as_f32[1] += vreg[rsrc].as_f32[1];
+            return;
+        }
+        case VSUBSP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_f32[0] -= vreg[rsrc].as_f32[0];
+            vreg[rdst].as_f32[1] -= vreg[rsrc].as_f32[1];
+            return;
+        }
+        case VMULSP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_f32[0] *= vreg[rsrc].as_f32[0];
+            vreg[rdst].as_f32[1] *= vreg[rsrc].as_f32[1];
+            return;
+        }
+        case VDIVSP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i32[0] /= vreg[rsrc].as_i32[0];
+            vreg[rdst].as_i32[1] /= vreg[rsrc].as_i32[1];
+            return;
+        }
+        case VADDDP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_f64[0] += vreg[rsrc].as_f64[0];
+            vreg[rdst].as_f64[1] += vreg[rsrc].as_f64[1];
+            return;
+        }
+        case VSUBDP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_f64[0] -= vreg[rsrc].as_f64[0];
+            vreg[rdst].as_f64[1] -= vreg[rsrc].as_f64[1];
+            return;
+        }
+        case VMULDP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_f64[0] *= vreg[rsrc].as_f64[0];
+            vreg[rdst].as_f64[1] *= vreg[rsrc].as_f64[1];
+            return;
+        }
+        case VDIVDP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_f64[0] /= vreg[rsrc].as_f64[0];
+            vreg[rdst].as_f64[1] /= vreg[rsrc].as_f64[1];
+            return;
+        }
+        case VSTREGQW: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            uint8_t line = FETCH;
+            reg[rdst] = vreg[rsrc].as_i64[line];
+            return;
+        }
+        case VCMP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            zf = vreg[rdst] == vreg[rsrc];
+            bigger = vreg[rdst] > vreg[rsrc];
+            less = vreg[rdst] < vreg[rsrc];
+            return;
+        }
+        case VSHLQW: {
+            uint8_t rdst = FETCH;
+            uint8_t shift = FETCH;
+            vreg[rdst].as_i64[0] <<= shift;
+            vreg[rdst].as_i64[1] <<= shift;
+            return;
+        }
+        case VSHRQW: {
+            uint8_t rdst = FETCH;
+            uint8_t shift = FETCH;
+            vreg[rdst].as_i64[0] >>= shift;
+            vreg[rdst].as_i64[1] >>= shift;
+            return;
+        }
+        case VXOR: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            if(rdst == rsrc) {
+                vreg[rdst].as_i64[0] = 0;
+                vreg[rdst].as_i64[1] = 0;
+                return;
+            }
+            vreg[rdst].as_i64[0] ^= vreg[rsrc].as_i64[0];
+            vreg[rdst].as_i64[1] ^= vreg[rsrc].as_i64[1];
+            return;
+        }
+        case VAND: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i64[0] &= vreg[rsrc].as_i64[0];
+            vreg[rdst].as_i64[1] &= vreg[rsrc].as_i64[1];
+            return;
+        }
+        case VOR: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i64[0] |= vreg[rsrc].as_i64[0];
+            vreg[rdst].as_i64[1] |= vreg[rsrc].as_i64[1];
+            return;
+        }
+        case VNOT: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i64[0] = ~vreg[rsrc].as_i64[0];
+            vreg[rdst].as_i64[1] = ~vreg[rsrc].as_i64[1];
+            return;
+        }
+        case VCOPY: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            vreg[rdst].as_i64[0] = vreg[rsrc].as_i64[0];
+            vreg[rdst].as_i64[1] = vreg[rsrc].as_i64[1];
+            return;
+        }
+        case VSWAP: {
+            uint8_t rdst = FETCH;
+            uint8_t rsrc = FETCH;
+            std::swap(vreg[rdst], vreg[rsrc]);
+            return;
+        }
+    }
+    __builtin_unreachable();
 }

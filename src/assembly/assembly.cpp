@@ -1,65 +1,125 @@
 #include "assembly.h"
+#include <bit>
+#include <cstdint>
 
 std::unordered_map<std::string, uint64_t> labels;
 std::unordered_set<std::string> extern_labels;
 std::unordered_map<std::string, std::string> opcodes = {
-    {"noop", "0x00"},
-    {"ld", "0x01"},
-    {"add", "0x02"},
-    {"sub", "0x03"},
-    {"mul", "0x04"},
-    {"div", "0x05"},
-    {"imul", "0x06"},
-    {"idiv", "0x07"},
-    {"xor", "0x08"},
-    {"and", "0x09"},
-    {"or", "0x0A"},
-    {"shl", "0x0B"},
-    {"shr", "0x0C"},
-    {"jmp", "0x0D"},
-    {"cmp", "0x0E"},
-    {"jz", "0x0F"},
-    {"jnz", "0x10"},
-    {"jc", "0x11"},
-    {"jnc", "0x12"},
-    {"store", "0x13"},
-    {"ldm", "0x14"},
-    {"jl", "0x15"},
-    {"jle", "0x16"},
-    {"jb", "0x17"},
-    {"jbe", "0x18"},
-    {"jmprv", "0x19"},
-    {"push", "0x1A"},
-    {"pop", "0x1B"},
-    {"call", "0x1C"},
-    {"ret", "0x1D"},
-    {"fadd", "0x1E"},
-    {"fsub", "0x1F"},
-    {"fmul", "0x20"},
-    {"fdiv", "0x21"},
-    {"copy", "0x22"},
-    {"swap", "0x23"},
-    {"fma", "0x24"},
-    {"ltf", "0x25"},
-    {"ftl", "0x26"},
-    {"not", "0x27"},
-    {"ror", "0x28"},
-    {"rol", "0x29"},
-    {"arx", "0x2A"},
-    {"storx", "0x2B"},
-    {"ldmx", "0x2C"},
-    {"ldzero", "0x2D"},
-    {"print_reg", "0x2E"},
-    {"input_reg", "0x2F"},
-    /*
-    {"ADD", "1"},
-    {"ADD", "1"},
-    {"ADD", "1"},
-    {"ADD", "1"},
-    {"ADD", "1"},
-    */
-    {"hlt", "0xFF"},
+    {"noop", "0x00"}, {"NOOP", "0x00"},
+    {"ld", "0x01"}, {"LD", "0x01"},
+    {"add", "0x02"}, {"ADD", "0x02"},
+    {"sub", "0x03"}, {"SUB", "0x03"},
+    {"mul", "0x04"}, {"MUL", "0x04"},
+    {"div", "0x05"}, {"DIV", "0x05"},
+    {"imul", "0x06"}, {"IMUL", "0x06"},
+    {"idiv", "0x07"}, {"IDIV", "0x07"},
+    {"xor", "0x08"}, {"XOR", "0x08"},
+    {"and", "0x09"}, {"AND", "0x09"},
+    {"or", "0x0A"}, {"OR", "0x0A"},
+    {"shl", "0x0B"}, {"SHL", "0x0B"},
+    {"shr", "0x0C"}, {"SHR", "0x0C"},
+    {"jmp", "0x0D"}, {"JMP", "0x0D"},
+    {"cmp", "0x0E"}, {"CMP", "0x0E"},
+    {"jz", "0x0F"}, {"JZ", "0x0F"},
+    {"jnz", "0x10"}, {"JNZ", "0x10"},
+    {"jc", "0x11"}, {"JC", "0x11"},
+    {"jnc", "0x12"}, {"JNC", "0x12"},
+    {"store", "0x13"}, {"STORE", "0x13"},
+    {"ldm", "0x14"}, {"LDM", "0x14"},
+    {"jl", "0x15"}, {"JL", "0x15"},
+    {"jle", "0x16"}, {"JLE", "0x16"},
+    {"jb", "0x17"}, {"JB", "0x17"},
+    {"jbe", "0x18"}, {"JBE", "0x18"},
+    {"jmprv", "0x19"}, {"JMPRV", "0x19"},
+    {"push", "0x1A"}, {"PUSH", "0x1A"},
+    {"pop", "0x1B"}, {"POP", "0x1B"},
+    {"call", "0x1C"}, {"CALL", "0x1C"},
+    {"ret", "0x1D"}, {"RET", "0x1D"},
+    {"fadd", "0x1E"}, {"FADD", "0x1E"},
+    {"fsub", "0x1F"}, {"FSUB", "0x1F"},
+    {"fmul", "0x20"}, {"FMUL", "0x20"},
+    {"fdiv", "0x21"}, {"FDIV", "0x21"},
+    {"copy", "0x22"}, {"COPY", "0x22"},
+    {"swap", "0x23"}, {"SWAP", "0x23"},
+    {"fma", "0x24"}, {"FMA", "0x24"},
+    {"ltf", "0x25"}, {"LTF", "0x25"},
+    {"ftl", "0x26"}, {"FTL", "0x26"},
+    {"not", "0x27"}, {"NOT", "0x27"},
+    {"ror", "0x28"}, {"ROR", "0x28"},
+    {"rol", "0x29"}, {"ROL", "0x29"},
+    {"arx", "0x2A"}, {"ARX", "0x2A"},
+    {"storx", "0x2B"}, {"STORX", "0x2B"},
+    {"ldmx", "0x2C"}, {"LDMX", "0x2C"},
+    {"ldzero", "0x2D"}, {"LDZERO", "0x2D"},
+    {"print_reg", "0x2E"}, {"PRINT_REG", "0x2E"},
+    {"input_reg", "0x2F"}, {"INPUT_REG", "0x2F"},
+    {"neg", "0x30"}, {"NEG", "0x30"},
+    {"inc", "0x31"}, {"INC", "0x31"},
+    {"dec", "0x32"}, {"DEC", "0x32"},
+    {"vaddqw", "0x33"}, {"VADDQW", "0x33"},
+    {"vsubqw", "0x34"}, {"VSUBQW", "0x34"},
+    {"vdivqw", "0x35"}, {"VDIVQW", "0x35"},
+    {"vmulqw", "0x36"}, {"VMULQW", "0x36"},
+    {"vcmp", "0x37"}, {"VCMP", "0x37"},
+    {"vshlqw", "0x38"}, {"VSHLQW", "0x38"},
+    {"vshrqw", "0x39"}, {"VSHRQW", "0x39"},
+    {"vxor", "0x3A"}, {"VXOR", "0x3A"},
+    {"vand", "0x3B"}, {"VAND", "0x3B"},
+    {"vor", "0x3C"}, {"VOR", "0x3C"},
+    {"vcopy", "0x3D"}, {"VCOPY", "0x3D"},
+    {"vswap", "0x3E"}, {"VSWAP", "0x3E"},
+    {"vldqw", "0x3F"}, {"VLDQW", "0x3F"},
+    {"vlddw", "0x40"}, {"VLDDW", "0x40"},
+    {"vldw", "0x41"}, {"VLDW", "0x41"},
+    {"vld", "0x42"}, {"VLD", "0x42"},
+    {"vldsp", "0x43"}, {"VLDSP", "0x43"},
+    {"vlddp", "0x44"}, {"VLDDP", "0x44"},
+    {"vldmxqw", "0x45"}, {"VLDMXQW", "0x45"},
+    {"vldlqw", "0x46"}, {"VLDLQW", "0x46"},
+    {"vnot", "0x47"}, {"VNOT", "0x47"},
+    {"vadddw", "0x48"}, {"VADDQW", "0x48"},
+    {"vsubdw", "0x49"}, {"VSUBQW", "0x49"},
+    {"vdivdw", "0x4A"}, {"VDIVQW", "0x4A"},
+    {"vmuldw", "0x4B"}, {"VMULQW", "0x4B"},
+    {"vaddw", "0x4C"}, {"VADDQW", "0x4C"},
+    {"vsubw", "0x4D"}, {"VSUBQW", "0x4D"},
+    {"vdivw", "0x4E"}, {"VDIVQW", "0x4E"},
+    {"vmulw", "0x4F"}, {"VMULQW", "0x4F"},
+    {"vadd", "0x50"}, {"VADDQW", "0x50"},
+    {"vsub", "0x51"}, {"VSUBQW", "0x51"},
+    {"vdiv", "0x52"}, {"VDIVQW", "0x52"},
+    {"vmul", "0x53"}, {"VMULQW", "0x53"},
+    {"vaddsp", "0x54"}, {"VADDSP", "0x54"},
+    {"vsubsp", "0x55"}, {"VSUBSP", "0x55"},
+    {"vdivsp", "0x56"}, {"VDIVSP", "0x56"},
+    {"vmulsp", "0x57"}, {"VMULSP", "0x57"},
+    {"vadddp", "0x58"}, {"VADDDP", "0x58"},
+    {"vsubdp", "0x59"}, {"VSUBDP", "0x59"},
+    {"vdivdp", "0x5A"}, {"VDIVDP", "0x5A"},
+    {"vmuldp", "0x5B"}, {"VMULDP", "0x5B"},
+    {"vstregqw", "0x5C"}, {"VMSTREGQW", "0x5C"},
+    {"ext", "0xFE"}, {"EXTENSION", "0xFE"},
+    {"hlt", "0xFF"}, {"HLT", "0xFF"},
 };
+
+static bool is_vreg_name(const std::string &id)
+{
+    if (id.size() < 3)
+        return false;
+    if ((id[0] != 'v' && id[0] != 'V') || (id[1] != 'r' && id[1] != 'R'))
+        return false;
+    return std::all_of(id.begin() + 2, id.end(), ::isdigit);
+}
+
+static bool is_vext_opcode_value(const std::string &value)
+{
+    static const std::unordered_set<std::string> vext_values = {
+        "0x33", "0x34", "0x35", "0x36", "0x37", "0x38", "0x39",
+        "0x3A", "0x3B", "0x3C", "0x3D", "0x3E", "0x3F", "0x40",
+        "0x41", "0x42", "0x43", "0x44", "0x45"
+    };
+    return vext_values.contains(value);
+}
 
 bool lexer::is_opcode(const std::string &id)
 {
@@ -279,6 +339,10 @@ void lexer::collect_labels()
             {
                 address++;
             }
+            else if (is_vreg_name(id))
+            {
+                address++;
+            }
             else if ((id[0] == 'R' || id[0] == 'r') && std::all_of(id.begin() + 1, id.end(), ::isdigit))
             {
                 address++;
@@ -290,7 +354,7 @@ void lexer::collect_labels()
         }
         else if (is_int(c))
         {
-            while ((i < code.size() && is_int(code[i])))
+            while (i < code.size() && (is_int(code[i])||code[i]=='.'||code[i]=='f'))
             {
                 i++;
             }
@@ -345,6 +409,13 @@ void lexer::lex()
             if (!id.empty() && id.back() == ':')
             {
                 id.pop_back();
+                continue;
+            }
+            if (is_vreg_name(id))
+            {
+                std::string_view n(id.data() + 2, id.size() - 2);
+                lexed.emplace_back(token{REGN, l, c, std::string{n}, addr});
+                addr++;
                 continue;
             }
             if ((id[0] == 'R' || id[0] == 'r') && std::all_of(id.begin() + 1, id.end(), ::isdigit))
@@ -403,13 +474,25 @@ void lexer::lex()
         else if (is_int(s))
         {
             std::string number;
-            while ((i < code.size() && is_int(code[i])))
+            bool seen_dot=false;
+            bool seen_f=false;
+            while (i < code.size() && (is_int(code[i])||code[i]=='.'||code[i]=='f'))
             {
+                if(seen_f) break;
+                if(code[i]=='.') {
+                    if(!seen_dot) seen_dot = true;
+                    else break;
+                }
+                if(code[i]=='f') seen_f = true;
                 number.push_back(code[i]);
                 i++;
                 c++;
             }
-            lexed.emplace_back(token{INT, l, c, number, addr});
+            if(seen_dot) {
+                if(seen_f) lexed.emplace_back(token{FLOAT, l, c, number, addr});
+                else lexed.emplace_back(token{DOUBLE, l, c, number, addr});
+            }
+            else lexed.emplace_back(token{INT, l, c, number, addr});
             addr += 8;
         }
         else if (s == ',')
@@ -501,6 +584,21 @@ std::vector<uint8_t> assembly::compile()
         if (lexed[indx].t == ID)
         {
             std::string id = lexed[indx].val;
+            if (id == "0xFE")
+            {
+                compiled.emplace_back(0xFE);
+                compiled.emplace_back(0x01);
+                consume();
+                continue;
+            }
+            if (is_vext_opcode_value(id))
+            {
+                compiled.emplace_back(0xFE);
+                compiled.emplace_back(0x01);
+                compiled.emplace_back(std::stoul(id, 0, 16));
+                consume();
+                continue;
+            }
             compiled.emplace_back(std::stoul(id, 0, 16));
             consume();
             continue;
@@ -508,6 +606,14 @@ std::vector<uint8_t> assembly::compile()
         else if (peek().t == INT)
         {
             uint64_t val = std::stoull(lexed[indx].val);
+            consume();
+            std::array<uint8_t, 8> bytes = slice64(val);
+            for (auto &x : bytes)
+            {
+                compiled.emplace_back(x);
+            }
+        } else if(peek().t==FLOAT||peek().t==DOUBLE) {
+            uint64_t val = std::bit_cast<uint64_t>(std::stod(lexed[indx].val));
             consume();
             std::array<uint8_t, 8> bytes = slice64(val);
             for (auto &x : bytes)
